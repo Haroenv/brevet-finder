@@ -17,7 +17,10 @@ import { history } from 'instantsearch.js/es/lib/routers';
 import algoliasearch from 'algoliasearch/lite';
 import * as ReactDOM from 'react-dom/client';
 import 'instantsearch.css/themes/satellite-min.css';
-import type { InstantSearchOptions, UiState } from 'instantsearch.js';
+import type {
+  InstantSearchOptions,
+  UiState as InstantSearchUiState,
+} from 'instantsearch.js';
 import type { Brevet } from '../types';
 import './map';
 import { useEffect, useRef, useState } from 'react';
@@ -44,12 +47,13 @@ if (!VITE_MAPBOX) {
 
 const searchClient = algoliasearch(VITE_ALGOLIA_APP, VITE_ALGOLIA_READ);
 
-type IndexUiState = Partial<UiState<ViewIndexUiState<View>>[string]>;
+type UiState = InstantSearchUiState & {
+  [indexId: string]: Partial<ViewIndexUiState<View>>;
+};
+type IndexUiState = InstantSearchUiState['string'] &
+  Partial<ViewIndexUiState<View>>;
 
-const routing: InstantSearchOptions<
-  { [index: string]: IndexUiState },
-  IndexUiState
->['routing'] = {
+const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
   stateMapping: {
     stateToRoute(uiState) {
       const { configure, geoSearch, ...indexUiState } = uiState['brevets'];
@@ -374,6 +378,7 @@ function GeoSearch(props: {
   onMarkerClick: (item: Brevet[]) => void;
   selected: string[];
 }) {
+  // @ts-expect-error GeoHit wrongly has __position and __queryID
   const { items, refine } = useGeoSearch<Brevet>({});
   const ref = useRef<HTMLElement>(null);
 
@@ -482,6 +487,7 @@ function DatePicker({ attribute }: { attribute: string }) {
       >
         <legend style={{ alignSelf: 'center' }}>From</legend>
         <input
+          className="input"
           type="date"
           value={numToDateString(values.min)}
           onChange={(event) =>
@@ -523,6 +529,7 @@ function DatePicker({ attribute }: { attribute: string }) {
         <legend style={{ alignSelf: 'center' }}>To</legend>
         <input
           type="date"
+          className="input"
           value={numToDateString(values.max)}
           onChange={(event) =>
             refine([values.min, dateStringToNum(event.target.value)])
