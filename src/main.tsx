@@ -159,6 +159,8 @@ root.render(
           <div
             style={{
               display: 'flex',
+              flexWrap: 'wrap',
+              gap: '1em',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
@@ -188,9 +190,11 @@ root.render(
             <div
               style={{
                 display: 'flex',
+                alignItems: 'center',
                 gap: '.5em',
               }}
             >
+              <ViewSwitcher />
               <Stats />
               <PoweredBy />
             </div>
@@ -333,7 +337,6 @@ function Results() {
 
   return (
     <>
-      <ViewSwitcher />
       {view === 'hits' ? (
         <>
           <Hits<Brevet> hitComponent={Hit} />{' '}
