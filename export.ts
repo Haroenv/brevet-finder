@@ -1,13 +1,26 @@
 import { Client } from '@googlemaps/google-maps-services-js';
+import algoliasearch from 'algoliasearch';
 import type { Brevet } from './types';
+import { Progress } from './progress';
 
-const { GOOGLE_MAPS = '', SUPABASE = '' } = process.env;
+const {
+  GOOGLE_MAPS = '',
+  SUPABASE = '',
+  ALGOLIA_APP = '',
+  ALGOLIA_WRITE = '',
+} = process.env;
 
 if (!GOOGLE_MAPS) {
   throw new Error('Missing GOOGLE_MAPS env variable');
 }
 if (!SUPABASE) {
   throw new Error('Missing SUPABASE env variable');
+}
+if (!ALGOLIA_APP) {
+  throw new Error('Missing ALGOLIA_APP env variable');
+}
+if (!ALGOLIA_WRITE) {
+  throw new Error('Missing ALGOLIA_WRITE env variable');
 }
 
 type FetchOutput = {
@@ -157,16 +170,24 @@ async function addAddress(brevets: Brevet[]) {
 
   for await (const [index, brevet] of brevets.entries()) {
     progress.update(index);
-    if (brevet._geoloc[0]?.lat !== 0) continue;
+    if (brevet._geoloc[0]) continue;
+
+    const address = [
+      brevet.city,
+      brevet.department,
+      brevet.region,
+      brevet.country,
+    ]
+      .filter(Boolean)
+      .join(', ');
 
     const out = await client.geocode({
       params: {
-        address: [brevet.city, brevet.department, brevet.region, brevet.country]
-          .filter(Boolean)
-          .join(', '),
+        address,
         key: GOOGLE_MAPS,
       },
     });
+
     const location = out?.data?.results?.[0]?.geometry?.location;
     if (location.lat && location.lng) {
       brevet._geoloc = [location];
@@ -177,49 +198,34 @@ async function addAddress(brevets: Brevet[]) {
 }
 
 const client = new Client({});
+const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
+
+const allObjectIds = new Set<string>();
+
+await searchClient.initIndex('brevets').browseObjects({
+  query: '',
+  batch: (objects) => {
+    objects.forEach((object) => {
+      allObjectIds.add(object.objectID);
+    });
+  },
+});
 
 await Bun.write(
   'brevets.json',
   JSON.stringify(
-    await addAddress([
-      ...cleanBrevets(
-        await fetchBrevets({
-          from: '2023-01-01',
-          to: '2026-01-01',
-        })
-      ),
-      ...cleanBrevetsFromSupabase(await fetchBrevetsFromSupabase()),
-    ]),
+    await addAddress(
+      [
+        ...cleanBrevets(
+          await fetchBrevets({
+            from: '2023-01-01',
+            to: '2026-01-01',
+          })
+        ),
+        ...cleanBrevetsFromSupabase(await fetchBrevetsFromSupabase()),
+      ].filter((brevet) => !allObjectIds.has(brevet.objectID))
+    ),
     null,
     2
   )
 );
-
-class Progress {
-  total: number;
-  current: number;
-  width: number;
-  completed: string;
-  uncompleted: string;
-
-  constructor(total: number) {
-    this.completed = '.';
-    this.uncompleted = ' ';
-    this.total = total;
-    this.current = 0;
-    this.width = 60;
-  }
-  update(current: number) {
-    this.current = current;
-
-    const dots = this.completed.repeat(
-      ((this.current % this.total) / this.total) * this.width
-    );
-    const left =
-      this.width - ((this.current % this.total) / this.total) * this.width;
-    const empty = this.uncompleted.repeat(left);
-    const ratio = Math.round((this.current / this.total) * 100);
-
-    process.stdout.write(`\r[${dots}${empty}] ${ratio}%`);
-  }
-}
