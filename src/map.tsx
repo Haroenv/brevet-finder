@@ -21,6 +21,7 @@ declare module 'react/jsx-runtime' {
 
 export interface Point {
   objectID: string;
+  selected: boolean;
   latitude: number;
   longitude: number;
   title: string;
@@ -155,7 +156,12 @@ class MapboxMap extends HTMLElement {
           filter: ['!', ['has', 'point_count']],
           paint: {
             'circle-radius': 6,
-            'circle-color': '#b6b7d5',
+            'circle-color': [
+              'case',
+              ['boolean', ['get', 'selected'], true],
+              '#3c4fe0',
+              '#b6b7d5',
+            ],
             'circle-stroke-width': 1,
             'circle-stroke-color': '#fff',
           },

@@ -346,19 +346,20 @@ function ViewSwitcher() {
 }
 
 function DisplayGeo() {
-  const [hits, setHits] = useState<Brevet[]>([]);
+  const [selected, setSelected] = useState<Brevet[]>([]);
 
   return (
     <>
       <Configure hitsPerPage={500} />
       <GeoSearch
         onMarkerClick={(items) => {
-          setHits(items);
+          setSelected(items);
         }}
+        selected={selected.map((hit) => hit.objectID)}
       />
       <div className="ais-Hits">
         <ul className="ais-Hits-list">
-          {hits.map((hit) => (
+          {selected.map((hit) => (
             <li key={hit.objectID} className="ais-Hits-item">
               <Hit hit={hit} />
             </li>
@@ -369,7 +370,10 @@ function DisplayGeo() {
   );
 }
 
-function GeoSearch(props: { onMarkerClick: (item: Brevet[]) => void }) {
+function GeoSearch(props: {
+  onMarkerClick: (item: Brevet[]) => void;
+  selected: string[];
+}) {
   const { items, refine } = useGeoSearch<Brevet>({});
   const ref = useRef<HTMLElement>(null);
 
@@ -414,6 +418,7 @@ function GeoSearch(props: { onMarkerClick: (item: Brevet[]) => void }) {
       data-points={JSON.stringify(
         items.map((item) => ({
           objectID: item.objectID,
+          selected: props.selected.includes(item.objectID),
           latitude: item._geoloc[0].lat,
           longitude: item._geoloc[0].lng,
           title: [
