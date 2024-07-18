@@ -20,6 +20,7 @@ export const connectView: ViewConnector<string> = function connectView(
         instance = instantSearchInstance as AugmentedInstantSearch;
 
         instance._view =
+          // @ts-expect-error UiState in initOptions doesn't use generic
           initOptions.uiState[initOptions.parent.getIndexId()].view ||
           defaultView;
 
