@@ -214,7 +214,9 @@ root.render(
           <a href="https://www.audax-club-parisien.com/organisation/brm-monde/#calendrier-BRM">
             ACP
           </a>
-          , <a href="https://map.audax-club-parisien.com">ACP</a>
+          , <a href="https://map.audax-club-parisien.com">ACP</a>. Code
+          available on{' '}
+          <a href="https://github.com/haroenv/brm-search">GitHub</a>.
         </p>
       </footer>
     </div>
