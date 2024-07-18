@@ -9,6 +9,7 @@ import {
   SearchBox,
   Stats,
   useGeoSearch,
+  useInstantSearch,
   usePagination,
   useRange,
   useRefinementList,
@@ -112,17 +113,7 @@ root.render(
         style={{ display: 'grid', gridTemplateColumns: '1fr 4fr', gap: '1em' }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
-          <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <h1
-              style={{
-                fontSize: 'inherit',
-                fontVariant: 'all-small-caps',
-                color: '#5a5e9a',
-              }}
-            >
-              Brevet Finder
-            </h1>
-          </a>
+          <Logo />
           <RangeWrapper attribute="dateNumber">
             <Panel header="date">
               <DatePicker attribute="dateNumber" />
@@ -222,6 +213,31 @@ root.render(
     </div>
   </InstantSearch>
 );
+
+function Logo() {
+  const { setIndexUiState } = useInstantSearch();
+  return (
+    <a
+      href="."
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey) return;
+        e.preventDefault();
+        setIndexUiState({});
+      }}
+      style={{ textDecoration: 'none', color: 'inherit' }}
+    >
+      <h1
+        style={{
+          fontSize: 'inherit',
+          fontVariant: 'all-small-caps',
+          color: '#5a5e9a',
+        }}
+      >
+        Brevet Finder
+      </h1>
+    </a>
+  );
+}
 
 function PaginationWrapper({ children }: { children: React.ReactNode }) {
   const { canRefine } = usePagination();
