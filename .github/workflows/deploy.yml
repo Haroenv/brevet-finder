@@ -31,9 +31,9 @@ jobs:
         run: bun run build
         env:
           NODE_ENV: production
-          VITE_ALGOLIA_APP: 1AWHE68HXJ
-          VITE_ALGOLIA_READ: 1ad3c77c0558e6fbb2f1946f8c302eef
-          VITE_MAPBOX: pk.eyJ1IjoiaGFyb2VudiIsImEiOiJjbHlyZWZtbmgwNjlvMmpxdjc4MjUybno5In0.WSgX9WNrxLsp6xpgya_lYg
+          VITE_ALGOLIA_APP: ${{ vars.VITE_ALGOLIA_APP }}
+          VITE_ALGOLIA_READ: ${{ vars.VITE_ALGOLIA_READ }}
+          VITE_MAPBOX: ${{ vars.VITE_MAPBOX }}
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact

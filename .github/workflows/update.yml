@@ -1,0 +1,33 @@
+name: Update content
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: 'update'
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Install
+        run: bun install
+      - name: Export content
+        run: bun run export
+        env:
+          GOOGLE_MAPS: ${{ secrets.GOOGLE_MAPS }}
+          SUPABASE: ${{ secrets.SUPABASE }}
+          ALGOLIA_APP: ${{ secrets.ALGOLIA_APP }}
+          ALGOLIA_WRITE: ${{ secrets.ALGOLIA_WRITE }}
+      - name: Import content
+        run: bun run import
+        env:
+          ALGOLIA_APP: ${{ secrets.ALGOLIA_APP }}
+          ALGOLIA_WRITE: ${{ secrets.ALGOLIA_WRITE }}

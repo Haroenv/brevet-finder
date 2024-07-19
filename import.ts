@@ -1,7 +1,11 @@
 import algoliasearch from 'algoliasearch';
 import type { Brevet } from './types';
 
-const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
+const {
+  ALGOLIA_APP = '',
+  ALGOLIA_WRITE = '',
+  GITHUB_STEP_SUMMARY = '',
+} = process.env;
 if (!ALGOLIA_APP) {
   throw new Error('Missing ALGOLIA_APP env variable');
 }
@@ -13,4 +17,8 @@ const data = (await Bun.file('brevets.json').json()) as Brevet[];
 
 const client = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
 
-client.initIndex('brevets').saveObjects(data);
+await client.initIndex('brevets').saveObjects(data);
+
+if (GITHUB_STEP_SUMMARY) {
+  Bun.write(GITHUB_STEP_SUMMARY, `Indexed ${data.length} brevets`);
+}
