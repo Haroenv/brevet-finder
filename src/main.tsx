@@ -558,7 +558,9 @@ function DatePicker({ attribute }: { attribute: string }) {
         <button
           onClick={() => refine([dateToNum(new Date()), values.max])}
           type="button"
-          className="btn"
+          className={`btn ${
+            values.min === dateToNum(new Date()) ? 'active' : ''
+          }`}
         >
           now
         </button>
@@ -599,7 +601,9 @@ function DatePicker({ attribute }: { attribute: string }) {
         <button
           onClick={() => refine([values.min, dateToNum(new Date())])}
           type="button"
-          className="btn"
+          className={`btn ${
+            values.max === dateToNum(new Date()) ? 'active' : ''
+          }`}
         >
           now
         </button>
