@@ -67,6 +67,13 @@ const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
       return {
         brevets: {
           ...indexRouteState,
+          range: {
+            ...indexRouteState['range'],
+            dateNumber:
+              indexRouteState['range']?.['dateNumber'] ||
+              // default to today
+              [dateToNum(new Date()), ''].join(':'),
+          },
           refinementList:
             indexRouteState['refinementList'] &&
             Object.fromEntries(
