@@ -141,7 +141,12 @@ function Sidebar() {
           <RefinementList
             attribute="distance"
             transformItems={(items) =>
-              items.toSorted((a, b) => parseInt(a.value) - parseInt(b.value))
+              items
+                .toSorted((a, b) => parseInt(a.value) - parseInt(b.value))
+                .map((item) => ({
+                  ...item,
+                  label: item.label + ' km',
+                }))
             }
             searchable
             showMore
@@ -200,6 +205,16 @@ function Main() {
                       ] +
                       ' ' +
                       numToDateString(refinement.value as number),
+                  })),
+                };
+              }
+              if (item.attribute === 'distance') {
+                return {
+                  ...item,
+                  label: 'distance',
+                  refinements: item.refinements.map((refinement) => ({
+                    ...refinement,
+                    label: refinement.label + ' km',
                   })),
                 };
               }
