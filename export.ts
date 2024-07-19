@@ -1,18 +1,8 @@
-import { Client } from '@googlemaps/google-maps-services-js';
 import algoliasearch from 'algoliasearch';
 import type { Brevet } from './types';
-import { Progress } from './progress';
+import { addAddress } from './geocode';
 
-const {
-  GOOGLE_MAPS = '',
-  SUPABASE = '',
-  ALGOLIA_APP = '',
-  ALGOLIA_WRITE = '',
-} = process.env;
-
-if (!GOOGLE_MAPS) {
-  throw new Error('Missing GOOGLE_MAPS env variable');
-}
+const { SUPABASE = '', ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
 if (!SUPABASE) {
   throw new Error('Missing SUPABASE env variable');
 }
@@ -165,39 +155,6 @@ function cleanBrevetsFromSupabase(brevets: SupabaseOutput[]): Brevet[] {
   }));
 }
 
-async function addAddress(brevets: Brevet[]) {
-  const progress = new Progress(brevets.length);
-
-  for await (const [index, brevet] of brevets.entries()) {
-    progress.update(index);
-    if (brevet._geoloc[0]) continue;
-
-    const address = [
-      brevet.city,
-      brevet.department,
-      brevet.region,
-      brevet.country,
-    ]
-      .filter(Boolean)
-      .join(', ');
-
-    const out = await client.geocode({
-      params: {
-        address,
-        key: GOOGLE_MAPS,
-      },
-    });
-
-    const location = out?.data?.results?.[0]?.geometry?.location;
-    if (location.lat && location.lng) {
-      brevet._geoloc = [location];
-    }
-  }
-
-  return brevets;
-}
-
-const client = new Client({});
 const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
 
 const allObjectIds = new Set<string>();
