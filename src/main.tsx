@@ -250,8 +250,10 @@ function Footer() {
         <a href="https://www.audax-club-parisien.com/organisation/brm-monde/#calendrier-BRM">
           ACP
         </a>
-        , <a href="https://map.audax-club-parisien.com">ACP</a>. Code available
-        on <a href="https://github.com/haroenv/brm-search">GitHub</a>.
+        , <a href="https://map.audax-club-parisien.com">ACP</a>,{' '}
+        <a href="https://www.randonneursmondiaux.org/59-Calendrier.html">LRM</a>
+        . Code available on{' '}
+        <a href="https://github.com/haroenv/brm-search">GitHub</a>.
       </p>
       <p>
         A Brevet is a long-distance cycling event with as goal to move your own
@@ -356,6 +358,7 @@ function Hit({ hit }: { hit: Brevet }) {
     <div data-objectid={hit.objectID}>
       <h2>{hit.date}</h2>
       <p>{hit.distance} km</p>
+      {Boolean(hit.name) && <p>{hit.name}</p>}
       <p>
         {[hit.city, hit.department, hit.region, hit.country]
           .filter(Boolean)
