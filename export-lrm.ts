@@ -180,7 +180,9 @@ function cleanBrevets(brevets: SheetOutput[]): Brevet[] {
     ].join('__'),
     date: numToDateString(weirdDateToNum(brevet.Date)).replaceAll('-', '/'),
     dateNumber: weirdDateToNum(brevet.Date),
-    distance: parseInt(brevet.Distance.replace(',', ''), 10),
+    distance:
+      Math.floor(parseInt(brevet.Distance.replace(',', ''), 10) / 100) * 100 ||
+      undefined,
     name: brevet['Event Name'],
     country: brevet.Country,
     region: '',
