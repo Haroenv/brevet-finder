@@ -433,7 +433,7 @@ function DisplayGeo() {
       <Configure hitsPerPage={500} />
       <GeoSearch
         onMarkerClick={(items) => {
-          setSelected(items);
+          setSelected(items.toSorted((a, b) => a.dateNumber - b.dateNumber));
         }}
         selected={selected.map((hit) => hit.objectID)}
       />
