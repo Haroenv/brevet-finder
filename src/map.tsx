@@ -199,6 +199,12 @@ class MapboxMap extends HTMLElement {
               },
             })
           );
+        })
+        .on('mouseenter', 'unclustered-points', () => {
+          this.map.getCanvas().style.cursor = 'pointer';
+        })
+        .on('mouseleave', 'unclustered-points', () => {
+          this.map.getCanvas().style.cursor = '';
         });
 
       this.attributeChangedCallback('data-points', '', this.dataset.points!);
