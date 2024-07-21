@@ -1,5 +1,5 @@
 import algoliasearch from 'algoliasearch';
-import type { Brevet } from './types';
+import type { Brevet } from '../types';
 import { addAddress } from './geocode';
 
 const { SUPABASE = '', ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;

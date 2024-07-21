@@ -1,5 +1,5 @@
 import algoliasearch from 'algoliasearch';
-import type { Brevet } from './types';
+import type { Brevet } from '../types';
 
 const {
   ALGOLIA_APP = '',

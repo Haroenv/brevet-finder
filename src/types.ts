@@ -3,7 +3,7 @@ export type Brevet = {
   date: string;
   dateNumber: number;
   name?: string;
-  distance: number;
+  distance?: number;
   country: string;
   region: string;
   department: string;

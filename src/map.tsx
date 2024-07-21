@@ -2,13 +2,12 @@ import {
   GeoJSONSource,
   Map,
   Marker,
-  Popup,
   type IControl,
   type MapOptions,
 } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { HTMLAttributes, Ref } from 'react';
-import { Brevet } from '../types';
+import { Brevet } from './types';
 import { debounce } from './debounce';
 
 declare module 'react/jsx-runtime' {

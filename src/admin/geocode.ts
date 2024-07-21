@@ -1,6 +1,6 @@
 import { Client } from '@googlemaps/google-maps-services-js';
 import { Progress } from './progress';
-import { Brevet } from './types';
+import { Brevet } from '../types';
 
 const { GOOGLE_MAPS = '' } = process.env;
 

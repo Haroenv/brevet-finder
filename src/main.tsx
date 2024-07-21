@@ -22,11 +22,18 @@ import type {
   InstantSearchOptions,
   UiState as InstantSearchUiState,
 } from 'instantsearch.js';
-import type { Brevet } from '../types';
+import type { Brevet } from './types';
 import './map';
 import { useEffect, useRef, useState } from 'react';
 import { useView, ViewIndexUiState } from './connect-view';
 import type { LngLatBounds } from 'mapbox-gl';
+import {
+  dateStringToNum,
+  dateToNum,
+  dateToRatio,
+  numToDateString,
+  ratioToDate,
+} from './date';
 
 const rootDiv = document.getElementById('root') as HTMLElement;
 const root = ReactDOM.createRoot(rootDiv);
@@ -643,58 +650,4 @@ function DatePicker({ attribute }: { attribute: string }) {
       </fieldset>
     </div>
   );
-}
-
-function dateToNum(date: Date) {
-  return dateStringToNum(date.toISOString().split('T')[0]);
-}
-
-function dateStringToNum(date: string) {
-  return parseInt(date.replaceAll('-', ''), 10);
-}
-
-function numToDateString(num: number) {
-  const date = num.toString();
-  return `${date.slice(0, 4)}-${date.slice(4, 6).padStart(2, '0')}-${date
-    .slice(6, 8)
-    .padStart(2, '0')}`;
-}
-
-function ratioToDate(
-  ratio: number,
-  range: { min?: number; max?: number }
-): number {
-  if (
-    range.min === undefined ||
-    range.max === undefined ||
-    range.min === -Infinity ||
-    range.max === Infinity
-  ) {
-    return 0;
-  }
-  const minTimeStamp = new Date(numToDateString(range.min)).getTime();
-  const maxTimeStamp = new Date(numToDateString(range.max)).getTime();
-
-  const date = new Date(minTimeStamp + ratio * (maxTimeStamp - minTimeStamp));
-
-  return parseInt(date.toISOString().split('T')[0].replaceAll('-', ''), 10);
-}
-
-function dateToRatio(date: number, range: { min?: number; max?: number }) {
-  if (
-    range.min === undefined ||
-    range.max === undefined ||
-    range.min === -Infinity ||
-    range.max === Infinity
-  ) {
-    return 0.5;
-  }
-  if (date === 0 || range.min === range.max) {
-    return 0;
-  }
-  const minTimeStamp = new Date(numToDateString(range.min)).getTime();
-  const maxTimeStamp = new Date(numToDateString(range.max)).getTime();
-  const dateTimeStamp = new Date(numToDateString(date)).getTime();
-
-  return (dateTimeStamp - minTimeStamp) / (maxTimeStamp - minTimeStamp);
 }

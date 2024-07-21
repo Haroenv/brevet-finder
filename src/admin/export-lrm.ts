@@ -1,8 +1,9 @@
 import algoliasearch from 'algoliasearch';
 import { parseString } from 'fast-csv';
 import { DOMParser } from 'xmldom-qsa';
-import { Brevet } from './types';
+import { Brevet } from '../types';
 import { addAddress } from './geocode';
+import { numToDate, numToDateString, weirdDateToNum } from '../date';
 
 const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
 if (!ALGOLIA_APP) {
@@ -130,55 +131,21 @@ function resolveGoogleRedirect(url: string | undefined) {
   return url;
 }
 
-const thisYear = new Date().getFullYear();
-function weirdDateToNum(date: string) {
-  const [year = thisYear, monthStr = 'Jan', day = '01'] = date
-    .split('/')
-    .reverse();
-
-  const month = (
-    [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ].indexOf(monthStr) + 1
-  ).toString();
-
-  return parseInt(
-    [year, month.padStart(2, '0'), day.padStart(2, '0')].join(''),
-    10
-  );
-}
-
-function numToDateString(num: number) {
-  const date = num.toString();
-  return `${date.slice(0, 4)}-${date.slice(4, 6).padStart(2, '0')}-${date
-    .slice(6, 8)
-    .padStart(2, '0')}`;
-}
-
-function numToDate(num: number) {
-  return new Date(numToDateString(num));
-}
-
 function cleanBrevets(brevets: SheetOutput[]): Brevet[] {
   return brevets.map((brevet) => ({
     objectID: [
-      numToDateString(weirdDateToNum(brevet.Date)).replaceAll('-', '/'),
+      numToDateString(weirdDateToNum(brevet.Date))
+        .split('-')
+        .reverse()
+        .join('/'),
       brevet.Distance,
       brevet.Country,
       brevet['Start Location'],
     ].join('__'),
-    date: numToDateString(weirdDateToNum(brevet.Date)).replaceAll('-', '/'),
+    date: numToDateString(weirdDateToNum(brevet.Date))
+      .split('-')
+      .reverse()
+      .join('/'),
     dateNumber: weirdDateToNum(brevet.Date),
     distance:
       Math.floor(parseInt(brevet.Distance.replace(',', ''), 10) / 100) * 100 ||

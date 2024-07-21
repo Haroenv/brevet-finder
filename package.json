@@ -25,8 +25,9 @@
     "xmldom-qsa": "^1.1.3"
   },
   "scripts": {
-    "export": "bun export.ts",
-    "import": "bun import.ts",
+    "export": "bun src/admin/export.ts",
+    "import": "bun src/admin/import.ts",
+    "reformat": "bun src/admin/reformat.ts",
     "dev": "bunx --bun vite",
     "build": "bunx --bun vite build",
     "serve": "vite preview"
