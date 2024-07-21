@@ -64,9 +64,19 @@ type IndexUiState = InstantSearchUiState['string'] &
 const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
   stateMapping: {
     stateToRoute(uiState) {
-      const { configure, geoSearch, ...indexUiState } = uiState['brevets'];
+      const {
+        configure,
+        geoSearch,
+        range = {},
+        ...indexUiState
+      } = uiState['brevets'];
+      const { dateNumber, ...rangeUiState } = range;
       return {
         ...indexUiState,
+        range: {
+          ...rangeUiState,
+          date: dateNumber,
+        },
       };
     },
     routeToState(routeState) {
@@ -77,7 +87,7 @@ const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
           range: {
             ...indexRouteState['range'],
             dateNumber:
-              indexRouteState['range']?.['dateNumber'] ||
+              indexRouteState['range']?.['date'] ||
               // default to today
               [dateToNum(new Date()), ''].join(':'),
           },
@@ -147,6 +157,8 @@ function Sidebar() {
         <Panel header="distance">
           <RefinementList
             attribute="distance"
+            limit={6}
+            showMoreLimit={40}
             transformItems={(items) =>
               items
                 .toSorted((a, b) => parseInt(a.value) - parseInt(b.value))
