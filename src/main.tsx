@@ -165,6 +165,7 @@ function DisplayDetails() {
       <Hits<Brevet> hitComponent={Hit} />
       <GeoSearch
         onMarkerClick={() => {}}
+        selected={items.map((hit) => hit.objectID)}
         center={items[0]._geoloc[0]}
         zoom={5}
         refineOnMapMove={false}
