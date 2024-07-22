@@ -163,7 +163,12 @@ class MapboxMap extends HTMLElement {
               '#f5f5fa',
             ],
             'circle-stroke-width': 1,
-            'circle-stroke-color': '#b6b7d5',
+            'circle-stroke-color': [
+              'case',
+              ['boolean', ['get', 'selected'], true],
+              '#f5f5fa',
+              '#3c4fe0',
+            ],
           },
         })
         .on('click', 'clusters', (e) => {
