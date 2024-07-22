@@ -1,4 +1,5 @@
 import {
+  ClearRefinements,
   Configure,
   CurrentRefinements,
   Hits,
@@ -9,6 +10,7 @@ import {
   SearchBox,
   Stats,
   useGeoSearch,
+  useHits,
   useInstantSearch,
   usePagination,
   useRange,
@@ -24,7 +26,7 @@ import type {
 } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useView, ViewIndexUiState } from './connect-view';
 import type { LngLatBounds } from 'mapbox-gl';
 import {
@@ -34,6 +36,7 @@ import {
   numToDateString,
   ratioToDate,
 } from './date';
+import { useMediaQuery } from './use-media-query';
 
 const rootDiv = document.getElementById('root') as HTMLElement;
 const root = ReactDOM.createRoot(rootDiv);
@@ -121,33 +124,96 @@ const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
   }),
 };
 
-root.render(
-  <InstantSearch
-    searchClient={searchClient}
-    indexName="brevets"
-    routing={routing}
-    future={{
-      persistHierarchicalRootCount: true,
-      preserveSharedStateOnUnmount: true,
-    }}
-  >
-    <Configure hitsPerPage={18} />
-    <div>
-      <div
-        style={{ display: 'grid', gridTemplateColumns: '1fr 4fr', gap: '1em' }}
-      >
-        <Sidebar />
-        <Main />
-      </div>
-      <Footer />
-    </div>
-  </InstantSearch>
-);
+const objectID = new URLSearchParams(location.search).get('objectID');
+const App = objectID ? DetailsApp : SearchApp;
 
-function Sidebar() {
+root.render(<App />);
+
+function DetailsApp() {
+  return (
+    <InstantSearch
+      searchClient={searchClient}
+      indexName="brevets"
+      future={{
+        persistHierarchicalRootCount: true,
+        preserveSharedStateOnUnmount: true,
+      }}
+    >
+      <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
+        <Configure hitsPerPage={1} filters={`objectID:${objectID}`} />
+        <Logo resets={false} />
+        <p>
+          Check out this brevet! To find other brevets, go to{' '}
+          <a href=".">search</a>.
+        </p>
+        <DisplayDetails />
+        <Footer />
+      </div>
+    </InstantSearch>
+  );
+}
+
+function DisplayDetails() {
+  const { items } = useHits<Brevet>();
+
+  if (items.length === 0) {
+    return;
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
-      <Logo />
+      <Hits<Brevet> hitComponent={Hit} />
+      <GeoSearch
+        onMarkerClick={() => {}}
+        center={items[0]._geoloc[0]}
+        zoom={5}
+        refineOnMapMove={false}
+      />
+    </div>
+  );
+}
+
+const SizeContext = createContext(false);
+
+function SearchApp() {
+  const small = useMediaQuery('(max-width: 800px)');
+
+  return (
+    <SizeContext.Provider value={small}>
+      <InstantSearch
+        searchClient={searchClient}
+        indexName="brevets"
+        routing={routing}
+        future={{
+          persistHierarchicalRootCount: true,
+          preserveSharedStateOnUnmount: true,
+        }}
+      >
+        <Configure hitsPerPage={18} />
+        <div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: small ? '1fr' : '1fr 4fr',
+              gap: '1em',
+            }}
+          >
+            <div hidden={small}>
+              <Sidebar />
+            </div>
+            <Main />
+          </div>
+          <Footer />
+        </div>
+      </InstantSearch>
+    </SizeContext.Provider>
+  );
+}
+
+function Sidebar({ logo = true }: { logo?: boolean }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
+      {logo && <Logo />}
       <RangeWrapper attribute="dateNumber">
         <Panel header="date">
           <DatePicker attribute="dateNumber" />
@@ -197,63 +263,121 @@ function Sidebar() {
 }
 
 function Main() {
+  const small = useContext(SizeContext);
+  const [showRefinements, setShowRefinements] = useState(false);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
       <SearchBox />
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1em',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <CurrentRefinements
-          transformItems={(items) => {
-            return items.map((item) => {
-              if (item.attribute === 'dateNumber') {
-                return {
-                  ...item,
-                  label: 'date',
-                  refinements: item.refinements.map((refinement) => ({
-                    ...refinement,
-                    label:
-                      { '>=': 'from', '<=': 'to', '=': '=' }[
-                        refinement.operator as string
-                      ] +
-                      ' ' +
-                      numToDateString(refinement.value as number),
-                  })),
-                };
-              }
-              if (item.attribute === 'distance') {
-                return {
-                  ...item,
-                  label: 'distance',
-                  refinements: item.refinements.map((refinement) => ({
-                    ...refinement,
-                    label: refinement.label + ' km',
-                  })),
-                };
-              }
-              return item;
-            });
-          }}
-        />
+      <div>
+        {small ? (
+          <div style={{ display: 'flex', gap: '.25em' }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setShowRefinements(true);
+              }}
+            >
+              refine
+            </button>
+            <ViewSwitcher />
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: small ? 'column' : 'row',
+              flexWrap: 'wrap',
+              gap: '1em',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <CurrentRefinements
+              transformItems={(items) => {
+                return items.map((item) => {
+                  if (item.attribute === 'dateNumber') {
+                    return {
+                      ...item,
+                      label: 'date',
+                      refinements: item.refinements.map((refinement) => ({
+                        ...refinement,
+                        label:
+                          { '>=': 'from', '<=': 'to', '=': '=' }[
+                            refinement.operator as string
+                          ] +
+                          ' ' +
+                          numToDateString(refinement.value as number),
+                      })),
+                    };
+                  }
+                  if (item.attribute === 'distance') {
+                    return {
+                      ...item,
+                      label: 'distance',
+                      refinements: item.refinements.map((refinement) => ({
+                        ...refinement,
+                        label: refinement.label + ' km',
+                      })),
+                    };
+                  }
+                  return item;
+                });
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: small ? 'column' : 'row',
+                alignItems: 'center',
+                gap: '.5em',
+              }}
+            >
+              <ViewSwitcher />
+              <Stats />
+              <PoweredBy />
+            </div>
+          </div>
+        )}
+      </div>
+      <div hidden={showRefinements}>
+        <Results />
+      </div>
+      {showRefinements && (
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '.5em',
+            position: 'absolute',
+            background: 'white',
+            width: '100%',
+            top: 0,
+            left: 0,
+            padding: '1em',
           }}
         >
-          <ViewSwitcher />
-          <Stats />
-          <PoweredBy />
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5em',
+              alignItems: 'center',
+              marginBottom: '0.5em',
+            }}
+          >
+            <ClearRefinements translations={{ resetButtonText: 'reset' }} />
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setShowRefinements(false);
+              }}
+            >
+              apply
+            </button>
+            <Stats />
+          </div>
+          <Sidebar logo={false} />
         </div>
-      </div>
-      <Results />
+      )}
     </div>
   );
 }
@@ -294,13 +418,13 @@ function Footer() {
   );
 }
 
-function Logo() {
+function Logo({ resets = true }: { resets?: boolean }) {
   const { setIndexUiState } = useInstantSearch();
   return (
     <a
       href="."
       onClick={(e) => {
-        if (e.metaKey || e.ctrlKey) return;
+        if (e.metaKey || e.ctrlKey || !resets) return;
         e.preventDefault();
         setIndexUiState({});
       }}
@@ -374,7 +498,13 @@ function Panel({
 
 function Hit({ hit }: { hit: Brevet }) {
   return (
-    <div data-objectid={hit.objectID}>
+    <div
+      data-objectid={hit.objectID}
+      style={{ position: 'relative', width: '100%' }}
+    >
+      <a href={`?objectID=${hit.objectID}`} style={{ float: 'right' }}>
+        share
+      </a>
       <h2>{hit.date}</h2>
       <p>{hit.distance} km</p>
       {Boolean(hit.name) && <p>{hit.name}</p>}
@@ -411,6 +541,7 @@ type View = 'hits' | 'geo';
 
 function Results() {
   const { view } = useView<View>({ defaultView: 'hits' });
+  const small = useContext(SizeContext);
 
   return (
     <>
@@ -418,7 +549,10 @@ function Results() {
         <>
           <Hits<Brevet> hitComponent={Hit} />{' '}
           <PaginationWrapper>
-            <Pagination style={{ alignSelf: 'center' }} />
+            <Pagination
+              style={{ alignSelf: 'center' }}
+              padding={small ? 0 : 2}
+            />
           </PaginationWrapper>
         </>
       ) : null}
@@ -472,9 +606,20 @@ function DisplayGeo() {
   );
 }
 
-function GeoSearch(props: {
+function GeoSearch({
+  onMarkerClick,
+  selected = [],
+  interactive = true,
+  refineOnMapMove = true,
+  center = { lat: 0, lng: 0 },
+  zoom = 1,
+}: {
   onMarkerClick: (item: Brevet[]) => void;
-  selected: string[];
+  selected?: string[];
+  interactive?: boolean;
+  refineOnMapMove?: boolean;
+  center?: { lat: number; lng: number };
+  zoom?: number;
 }) {
   // @ts-expect-error GeoHit wrongly has __position and __queryID
   const { items, refine } = useGeoSearch<Brevet>({});
@@ -483,19 +628,20 @@ function GeoSearch(props: {
   useEffect(() => {
     if (ref.current) {
       // @ts-ignore
-      ref.current.addEventListener('marker-click', onMarkerClick);
+      ref.current.addEventListener('marker-click', handleMarkerClick);
       // @ts-ignore
-      ref.current.addEventListener('map-move', onMapMove);
+      ref.current.addEventListener('map-move', handleMapMove);
     }
 
-    function onMarkerClick(event: CustomEvent<{ points: Brevet[] }>) {
-      props.onMarkerClick(
+    function handleMarkerClick(event: CustomEvent<{ points: Brevet[] }>) {
+      onMarkerClick(
         typeof event.detail.points === 'string'
           ? JSON.parse(event.detail.points)
           : event.detail.points
       );
     }
-    function onMapMove(event: CustomEvent<{ bounds: LngLatBounds }>) {
+    function handleMapMove(event: CustomEvent<{ bounds: LngLatBounds }>) {
+      if (!refineOnMapMove) return;
       const bounds = event.detail.bounds;
       if (bounds) {
         refine({ northEast: bounds._ne, southWest: bounds._sw });
@@ -504,24 +650,24 @@ function GeoSearch(props: {
 
     return () => {
       // @ts-ignore
-      ref.current?.removeEventListener('marker-click', onMarkerClick);
+      ref.current?.removeEventListener('marker-click', handleMarkerClick);
       // @ts-ignore
-      ref.current?.removeEventListener('map-move', onMapMove);
+      ref.current?.removeEventListener('map-move', handleMapMove);
     };
   }, []);
 
   return (
     <mapbox-map
       ref={ref}
-      data-latitude={0}
-      data-longitude={0}
-      data-zoom={1}
+      data-latitude={center.lat}
+      data-longitude={center.lng}
+      data-zoom={zoom}
       data-accesstoken={VITE_MAPBOX}
-      data-interactive="interactive"
+      data-interactive={interactive ? 'interactive' : 'non-interactive'}
       data-points={JSON.stringify(
         items.map((item) => ({
           objectID: item.objectID,
-          selected: props.selected.includes(item.objectID),
+          selected: selected.includes(item.objectID),
           latitude: item._geoloc[0].lat,
           longitude: item._geoloc[0].lng,
           title: [
