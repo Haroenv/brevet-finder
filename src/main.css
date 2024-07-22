@@ -12,6 +12,7 @@ body {
 }
 .ais-Hits-item {
   overflow: hidden;
+  border-radius: 3px !important;
 }
 .ais-Panel {
   margin: 0 !important;

@@ -37,9 +37,9 @@ class MapboxMap extends HTMLElement {
   container: HTMLDivElement;
 
   connectedCallback() {
-    this.container = Object.assign(document.createElement('div'), {
-      style: 'height: 80ch',
-    });
+    this.container = document.createElement('div');
+    this.container.style.height = '80ch';
+    this.container.style.borderRadius = '3px';
     this.parentNode!.insertBefore(this.container, this);
 
     if (
