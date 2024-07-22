@@ -143,9 +143,10 @@ class MapboxMap extends HTMLElement {
               750,
               40,
             ],
-            'circle-color': '#b6b7d5',
+            'circle-opacity': 0.8,
+            'circle-color': '#f5f5fa',
             'circle-stroke-width': 1,
-            'circle-stroke-color': '#fff',
+            'circle-stroke-color': '#b6b7d5',
           },
         })
         .addLayer({
@@ -159,10 +160,10 @@ class MapboxMap extends HTMLElement {
               'case',
               ['boolean', ['get', 'selected'], true],
               '#3c4fe0',
-              '#b6b7d5',
+              '#f5f5fa',
             ],
             'circle-stroke-width': 1,
-            'circle-stroke-color': '#fff',
+            'circle-stroke-color': '#b6b7d5',
           },
         })
         .on('click', 'clusters', (e) => {
