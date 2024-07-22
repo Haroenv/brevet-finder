@@ -189,7 +189,7 @@ function SearchApp() {
           preserveSharedStateOnUnmount: true,
         }}
       >
-        <Configure hitsPerPage={18} />
+        <Configure hitsPerPage={small ? 10 : 18} />
         <div>
           <div
             style={{
@@ -357,7 +357,9 @@ function Main() {
             width: '100%',
             top: 0,
             left: 0,
-            padding: '1em',
+            boxSizing: 'border-box',
+            padding: '.5em',
+            minHeight: '100vh',
           }}
         >
           <div
@@ -559,6 +561,11 @@ function Results() {
               padding={small ? 0 : 2}
             />
           </PaginationWrapper>
+          {small && (
+            <div style={{ margin: '0 auto' }}>
+              <PoweredBy />
+            </div>
+          )}
         </>
       ) : null}
       {view === 'geo' ? <DisplayGeo /> : null}
