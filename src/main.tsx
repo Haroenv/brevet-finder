@@ -341,7 +341,12 @@ function Main() {
           </div>
         )}
       </div>
-      <div hidden={showRefinements}>
+      <div
+        hidden={showRefinements}
+        style={{
+          display: showRefinements ? 'none' : 'contents',
+        }}
+      >
         <Results />
       </div>
       {showRefinements && (
