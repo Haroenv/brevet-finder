@@ -194,7 +194,7 @@ function SearchApp() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: small ? '1fr' : '1fr 4fr',
+              gridTemplateColumns: small ? '1fr' : 'minmax(330px, 1fr) 4fr',
               gap: '1em',
             }}
           >
@@ -303,12 +303,12 @@ function Main() {
                       label: 'date',
                       refinements: item.refinements.map((refinement) => ({
                         ...refinement,
-                        label:
+                        label: [
                           { '>=': 'from', '<=': 'to', '=': '=' }[
                             refinement.operator as string
-                          ] +
-                          ' ' +
+                          ],
                           numToDateString(refinement.value as number),
+                        ].join(' '),
                       })),
                     };
                   }
