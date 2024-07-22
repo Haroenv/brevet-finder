@@ -104,15 +104,23 @@ async function fetchBrevetsFromSupabase(): Promise<SupabaseOutput[]> {
   return brevets;
 }
 
+function cleanPays(pays: string): string {
+  if (pays === 'Allemagne') return 'Germany';
+  return pays;
+}
+
 function cleanBrevets(brevets: FetchOutput[]): Brevet[] {
   return brevets.map((brevet) => ({
-    objectID: [brevet.Date, brevet.Distance, brevet.Pays, brevet.Ville].join(
-      '__'
-    ),
+    objectID: [
+      brevet.Date,
+      brevet.Distance,
+      cleanPays(brevet.Pays),
+      brevet.Ville,
+    ].join('__'),
     date: brevet.Date,
     dateNumber: parseInt(brevet.Date.split('/').reverse().join(''), 10),
     distance: brevet.Distance,
-    country: brevet.Pays,
+    country: cleanPays(brevet.Pays),
     region: brevet.Region,
     department: brevet.Departement,
     city: brevet.Ville,
