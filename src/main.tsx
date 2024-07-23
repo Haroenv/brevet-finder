@@ -108,9 +108,10 @@ const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
   router: history({
     createURL({ qsModule, routeState, location }) {
       return new URL(
-        `?${qsModule.stringify(routeState, {
+        `${qsModule.stringify(routeState, {
           encode: false,
           arrayFormat: 'repeat',
+          addQueryPrefix: true,
         })}`,
         location.href
       ).toString();
