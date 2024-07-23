@@ -3,8 +3,12 @@ body {
     'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   margin: 0;
+  padding: 0;
+}
+#root {
   padding: 1em;
 }
+
 .ais-Hits-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
