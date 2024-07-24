@@ -1,5 +1,5 @@
 import { parseString } from 'fast-csv';
-import { DOMParser } from 'xmldom-qsa';
+import * as cheerio from 'cheerio';
 import { Brevet } from '../types';
 import { numToDate, numToDateString, weirdDateToNum } from '../date';
 
@@ -27,10 +27,10 @@ const GOOGLE_DOCS_URL = new URL(
 
 async function fetchViaHtml() {
   const html = await fetch(GOOGLE_DOCS_URL).then((res) => res.text());
-  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const $ = cheerio.load(html);
 
-  return Array.from(doc.querySelectorAll('table tr')).flatMap((row) => {
-    const cells = Array.from(row.querySelectorAll('td'));
+  return Array.from($('table tr')).flatMap((row) => {
+    const cells = Array.from($(row).find('td'));
     if (cells.length === 0) return [];
 
     const [
@@ -46,33 +46,33 @@ async function fetchViaHtml() {
     ] = cells;
 
     if (
-      eventName.textContent === '-' ||
-      eventName.textContent === '' ||
-      eventName.textContent === 'Event Name'
+      $(eventName).text() === '-' ||
+      $(eventName).text() === '' ||
+      $(eventName).text() === 'Event Name'
     ) {
       return [];
     }
 
     const output: Raw[] = [
       {
-        Date: date.textContent!,
-        Country: country.textContent!,
-        'Start Location': startLocation.textContent!,
-        Distance: distance.textContent!,
-        'Event Name': eventName.textContent!,
-        Organizer: organizer.textContent!,
-        Time: time.textContent!,
-        Elevation: elevation.textContent!,
-        Notes: notes.textContent!,
+        Date: $(date).text(),
+        Country: $(country).text(),
+        'Start Location': $(startLocation).text(),
+        Distance: $(distance).text(),
+        'Event Name': $(eventName).text(),
+        Organizer: $(organizer).text(),
+        Time: $(time).text(),
+        Elevation: $(elevation).text(),
+        Notes: $(notes).text(),
         links: {
           Distance: resolveGoogleRedirect(
-            distance.querySelector('a')?.getAttribute('href') || undefined
+            $(distance).find('a')?.attr('href') || undefined
           ),
           'Event Name': resolveGoogleRedirect(
-            eventName.querySelector('a')?.getAttribute('href') || undefined
+            $(eventName).find('a')?.attr('href') || undefined
           ),
           Organizer: resolveGoogleRedirect(
-            organizer.querySelector('a')?.getAttribute('href') || undefined
+            $(organizer).find('a')?.attr('href') || undefined
           ),
         },
       },
