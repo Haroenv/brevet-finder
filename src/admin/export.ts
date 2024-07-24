@@ -30,6 +30,7 @@ const flags = {
   lrm: true,
   usa: true,
   geocode: true,
+  filter: true,
 };
 
 const data = [
@@ -37,9 +38,13 @@ const data = [
   ...(flags.map ? await map.getData() : []),
   ...(flags.lrm ? await lrm.getData() : []),
   ...(flags.usa ? await usa.getData() : []),
-].filter((brevet) => !allObjectIds.has(brevet.objectID));
+];
+
+const filtered = flags.filter
+  ? data.filter((brevet) => !allObjectIds.has(brevet.objectID))
+  : data;
 
 await Bun.write(
   'brevets.json',
-  JSON.stringify(flags.geocode ? await addGeoloc(data) : data, null, 2)
+  JSON.stringify(flags.geocode ? await addGeoloc(filtered) : filtered, null, 2)
 );
