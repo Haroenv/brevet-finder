@@ -26,10 +26,10 @@ await searchClient.initIndex('brevets').browseObjects({
 
 const flags = {
   acp: true,
-  map: false,
-  lrm: false,
-  usa: false,
-  geocode: false,
+  map: true,
+  lrm: true,
+  usa: true,
+  geocode: true,
 };
 
 const data = [
