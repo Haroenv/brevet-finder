@@ -16,7 +16,7 @@ if (!ALGOLIA_WRITE) {
 const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
 const allObjectIds = new Set<string>();
 await searchClient.initIndex('brevets').browseObjects({
-  query: '',
+  attributesToRetrieve: ['objectID'],
   batch: (objects) => {
     objects.forEach((object) => {
       allObjectIds.add(object.objectID);

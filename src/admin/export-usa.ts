@@ -1,5 +1,6 @@
 import { Brevet } from '../types';
 import * as cheerio from 'cheerio';
+import { cleanRegion } from './clean-utils';
 
 type Raw = {
   location: string;
@@ -46,60 +47,6 @@ const url = (pathOrUrl?: string) =>
     'https://rusa.org/cgi-bin/eventsearch_PF.pl'
   ).toString();
 
-const stateMap: Record<string, string> = {
-  AK: 'Alaska',
-  AL: 'Alabama',
-  AR: 'Arkansas',
-  AZ: 'Arizona',
-  CA: 'California',
-  CO: 'Colorado',
-  CT: 'Connecticut',
-  DC: 'District of Columbia',
-  DE: 'Delaware',
-  FL: 'Florida',
-  GA: 'Georgia',
-  HI: 'Hawaii',
-  IA: 'Iowa',
-  ID: 'Idaho',
-  IL: 'Illinois',
-  IN: 'Indiana',
-  KS: 'Kansas',
-  KY: 'Kentucky',
-  LA: 'Louisiana',
-  MA: 'Massachusetts',
-  MD: 'Maryland',
-  ME: 'Maine',
-  MI: 'Michigan',
-  MN: 'Minnesota',
-  MO: 'Missouri',
-  MS: 'Mississippi',
-  MT: 'Montana',
-  NC: 'North Carolina',
-  ND: 'North Dakota',
-  NE: 'Nebraska',
-  NH: 'New Hampshire',
-  NJ: 'New Jersey',
-  NM: 'New Mexico',
-  NV: 'Nevada',
-  NY: 'New York',
-  OH: 'Ohio',
-  OK: 'Oklahoma',
-  OR: 'Oregon',
-  PA: 'Pennsylvania',
-  RI: 'Rhode Island',
-  SC: 'South Carolina',
-  SD: 'South Dakota',
-  TN: 'Tennessee',
-  TX: 'Texas',
-  UT: 'Utah',
-  VA: 'Virginia',
-  VT: 'Vermont',
-  WA: 'Washington',
-  WI: 'Wisconsin',
-  WV: 'West Virginia',
-  WY: 'Wyoming',
-};
-
 function cleanBrevets(brevets: Raw[]): Brevet[] {
   return brevets.map((brevet) => {
     const [state, city] = brevet.location.split(': ');
@@ -115,7 +62,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       dateNumber,
       distance,
       city,
-      region: stateMap[state],
+      region: cleanRegion(country, state),
       department: '',
       country,
       site: brevet.link || '',

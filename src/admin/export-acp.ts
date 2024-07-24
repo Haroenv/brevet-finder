@@ -1,4 +1,5 @@
 import { Brevet } from '../types';
+import { cleanRegion } from './clean-utils';
 
 type Raw = {
   Date: string;
@@ -72,16 +73,19 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
     const country = cleanPays(brevet.Pays);
     const date = cleanDate(brevet.Date);
     const dateNumber = parseInt(date.split('/').reverse().join(''), 10);
+    const distance = Math.floor(brevet.Distance / 100) * 100;
+    const city = brevet.Ville;
+    const region = cleanRegion(country, brevet.Region);
 
     return {
-      objectID: [date, brevet.Distance, country, brevet.Ville].join('__'),
+      objectID: [date, distance, country, city].join('__'),
       date,
       dateNumber,
-      distance: brevet.Distance,
+      distance,
       country,
-      region: brevet.Region,
+      region,
       department: brevet.Departement,
-      city: brevet.Ville,
+      city,
       _geoloc: [],
       map: (brevet.RoadMap.indexOf(';') > -1
         ? brevet.RoadMap.split(';')
