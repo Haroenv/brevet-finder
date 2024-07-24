@@ -71,7 +71,7 @@ export const connectView: ViewConnector<string> = function connectView(
         }
 
         return {
-          view: instance._view,
+          view: instance._view || defaultView,
           refine: (newView) => {
             instance!._view = newView;
             instance?.setUiState((state) =>
