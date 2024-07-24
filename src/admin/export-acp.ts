@@ -53,6 +53,7 @@ async function fetchBrevets(data: {
 
 function cleanPays(pays: string): string {
   if (pays === 'Allemagne') return 'Germany';
+  if (pays === 'Suisse') return 'Switzerland';
   return pays;
 }
 
