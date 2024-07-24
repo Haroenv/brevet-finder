@@ -21,4 +21,6 @@ await client.initIndex('brevets').saveObjects(data);
 
 if (GITHUB_STEP_SUMMARY) {
   Bun.write(GITHUB_STEP_SUMMARY, `Indexed ${data.length} brevets`);
+} else {
+  console.log(`Indexed ${data.length} brevets`);
 }

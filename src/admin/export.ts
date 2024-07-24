@@ -44,7 +44,8 @@ const filtered = flags.filter
   ? data.filter((brevet) => !allObjectIds.has(brevet.objectID))
   : data;
 
-await Bun.write(
-  'brevets.json',
-  JSON.stringify(flags.geocode ? await addGeoloc(filtered) : filtered, null, 2)
-);
+const objects = flags.geocode ? await addGeoloc(filtered) : filtered;
+
+await Bun.write('brevets.json', JSON.stringify(objects, null, 2));
+
+console.log(`Exported ${objects.length} brevets`);
