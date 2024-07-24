@@ -679,13 +679,12 @@ function GeoSearch({
       data-accesstoken={VITE_MAPBOX}
       data-interactive={interactive ? 'interactive' : 'non-interactive'}
       data-points={JSON.stringify(
-        items
-          .filter((item) => item._geoloc && item._geoloc.length > 0)
-          .map((item) => ({
+        items.flatMap((item) =>
+          item._geoloc.map(({ lat, lng }) => ({
             objectID: item.objectID,
             selected: selected.includes(item.objectID),
-            latitude: item._geoloc[0].lat,
-            longitude: item._geoloc[0].lng,
+            latitude: lat,
+            longitude: lng,
             title: [
               item.distance + 'km',
               item.city,
@@ -698,6 +697,7 @@ function GeoSearch({
             link: item.site,
             _item: item,
           }))
+        )
       )}
     />
   );
