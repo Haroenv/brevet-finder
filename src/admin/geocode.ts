@@ -3,14 +3,13 @@ import { Progress } from './progress';
 import { Brevet } from '../types';
 
 const { GOOGLE_MAPS = '' } = process.env;
-
 if (!GOOGLE_MAPS) {
   throw new Error('Missing GOOGLE_MAPS env variable');
 }
 
 const client = new Client({});
 
-export async function addAddress(brevets: Brevet[]) {
+export async function addGeoloc(brevets: Brevet[]) {
   const progress = new Progress(brevets.length);
 
   for await (const [index, brevet] of brevets.entries()) {

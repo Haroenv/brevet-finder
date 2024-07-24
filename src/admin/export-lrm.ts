@@ -1,19 +1,9 @@
-import algoliasearch from 'algoliasearch';
 import { parseString } from 'fast-csv';
 import { DOMParser } from 'xmldom-qsa';
 import { Brevet } from '../types';
-import { addAddress } from './geocode';
 import { numToDate, numToDateString, weirdDateToNum } from '../date';
 
-const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
-if (!ALGOLIA_APP) {
-  throw new Error('Missing ALGOLIA_APP env variable');
-}
-if (!ALGOLIA_WRITE) {
-  throw new Error('Missing ALGOLIA_WRITE env variable');
-}
-
-type SheetOutput = {
+type Raw = {
   Date: string;
   Country: string;
   'Start Location': string;
@@ -63,7 +53,7 @@ async function fetchViaHtml() {
       return [];
     }
 
-    const output: SheetOutput[] = [
+    const output: Raw[] = [
       {
         Date: date.textContent!,
         Country: country.textContent!,
@@ -104,7 +94,7 @@ async function fetchViaCsv() {
   }
 
   const text = await res.text();
-  const data: SheetOutput[] = [];
+  const data: Raw[] = [];
 
   const parsing = Promise.withResolvers();
   parseString(text, { headers: true })
@@ -131,7 +121,7 @@ function resolveGoogleRedirect(url: string | undefined) {
   return url;
 }
 
-function cleanBrevets(brevets: SheetOutput[]): Brevet[] {
+function cleanBrevets(brevets: Raw[]): Brevet[] {
   return brevets.map((brevet) => ({
     objectID: [
       numToDateString(weirdDateToNum(brevet.Date))
@@ -167,28 +157,6 @@ function cleanBrevets(brevets: SheetOutput[]): Brevet[] {
   }));
 }
 
-const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
-
-const allObjectIds = new Set<string>();
-
-await searchClient.initIndex('brevets').browseObjects({
-  query: '',
-  batch: (objects) => {
-    objects.forEach((object) => {
-      allObjectIds.add(object.objectID);
-    });
-  },
-});
-
-await Bun.write(
-  'brevets.json',
-  JSON.stringify(
-    await addAddress(
-      [...cleanBrevets(await fetchViaHtml())].filter(
-        (brevet) => !allObjectIds.has(brevet.objectID)
-      )
-    ),
-    null,
-    2
-  )
-);
+export async function getData() {
+  return cleanBrevets(await fetchViaHtml());
+}
