@@ -60,7 +60,7 @@ function cleanPays(pays: string): string {
 function cleanDate(date: string): string {
   let [day, month, year] = date.split('/');
 
-  if (parseInt(month, 10) >= 12) {
+  if (parseInt(month, 10) > 12) {
     [day, month] = [month, day];
   }
 

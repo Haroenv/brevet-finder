@@ -1,3 +1,4 @@
+import { numToDate } from '../date';
 import { Brevet } from '../types';
 
 const { SUPABASE = '' } = process.env;
@@ -46,25 +47,33 @@ async function fetchBrevets(): Promise<Raw[]> {
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets.map((brevet) => ({
-    objectID: 'supabase__' + brevet.id.toString(),
-    date: brevet.date,
-    dateNumber: parseInt(brevet.date.split('/').reverse().join(''), 10),
-    distance: brevet.distance,
-    country: brevet.country,
-    region: brevet.nom,
-    department: brevet.city,
-    city: brevet.city,
-    _geoloc: [{ lat: brevet.latitude, lng: brevet.longitude }],
-    map: [brevet.maplink].filter(Boolean),
-    site: brevet.clubwebsite,
-    mail: brevet.mailorganisateur,
-    club: brevet.nomClub,
-    ascent: parseInt(brevet.denivele, 10),
-    time: new Date(brevet.date.split('/').reverse().join('-')).getTime() / 1000,
-    status: brevet.status,
-    meta: brevet,
-  }));
+  return brevets.map((brevet) => {
+    const dateNumber = parseInt(brevet.date.split('/').reverse().join(''), 10);
+    const time = numToDate(dateNumber).getTime() / 1000;
+
+    return {
+      objectID: 'supabase__' + brevet.id.toString(),
+      date: brevet.date,
+      dateNumber,
+      distance: brevet.distance,
+      country: brevet.country,
+      region: brevet.nom,
+      department: brevet.city,
+      city: brevet.city,
+      _geoloc:
+        brevet.latitude && brevet.longitude
+          ? [{ lat: brevet.latitude, lng: brevet.longitude }]
+          : [],
+      map: [brevet.maplink].filter(Boolean),
+      site: brevet.clubwebsite,
+      mail: brevet.mailorganisateur,
+      club: brevet.nomClub,
+      ascent: parseInt(brevet.denivele, 10),
+      time,
+      status: brevet.status,
+      meta: brevet,
+    };
+  });
 }
 
 export async function getData() {

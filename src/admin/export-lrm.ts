@@ -122,39 +122,37 @@ function resolveGoogleRedirect(url: string | undefined) {
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets.map((brevet) => ({
-    objectID: [
-      numToDateString(weirdDateToNum(brevet.Date))
-        .split('-')
-        .reverse()
-        .join('/'),
-      brevet.Distance,
-      brevet.Country,
-      brevet['Start Location'],
-    ].join('__'),
-    date: numToDateString(weirdDateToNum(brevet.Date))
-      .split('-')
-      .reverse()
-      .join('/'),
-    dateNumber: weirdDateToNum(brevet.Date),
-    distance:
+  return brevets.map((brevet) => {
+    const distance =
       Math.floor(parseInt(brevet.Distance.replace(',', ''), 10) / 100) * 100 ||
-      undefined,
-    name: brevet['Event Name'],
-    country: brevet.Country,
-    region: '',
-    department: '',
-    city: brevet['Start Location'],
-    _geoloc: [],
-    map: [brevet.links?.Distance!].filter(Boolean),
-    site: brevet.links?.['Event Name'] || '',
-    mail: '',
-    club: brevet.Organizer,
-    ascent: parseInt(brevet.Elevation.replace(',', ''), 10),
-    time: numToDate(weirdDateToNum(brevet.Date)).getTime() / 1000,
-    status: '',
-    meta: brevet,
-  }));
+      undefined;
+    const dateNumber = weirdDateToNum(brevet.Date);
+    const date = numToDateString(dateNumber).split('-').reverse().join('/');
+    const time = numToDate(dateNumber).getTime() / 1000;
+
+    return {
+      objectID: [date, distance, brevet.Country, brevet['Start Location']].join(
+        '__'
+      ),
+      date,
+      dateNumber,
+      distance,
+      name: brevet['Event Name'],
+      country: brevet.Country,
+      region: '',
+      department: '',
+      city: brevet['Start Location'],
+      _geoloc: [],
+      map: [brevet.links?.Distance!].filter(Boolean),
+      site: brevet.links?.['Event Name'] || '',
+      mail: '',
+      club: brevet.Organizer,
+      ascent: parseInt(brevet.Elevation.replace(',', ''), 10),
+      time,
+      status: '',
+      meta: brevet,
+    };
+  });
 }
 
 export async function getData() {
