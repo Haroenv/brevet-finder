@@ -679,23 +679,25 @@ function GeoSearch({
       data-accesstoken={VITE_MAPBOX}
       data-interactive={interactive ? 'interactive' : 'non-interactive'}
       data-points={JSON.stringify(
-        items.map((item) => ({
-          objectID: item.objectID,
-          selected: selected.includes(item.objectID),
-          latitude: item._geoloc[0].lat,
-          longitude: item._geoloc[0].lng,
-          title: [
-            item.distance + 'km',
-            item.city,
-            item.department,
-            item.region,
-            item.country,
-          ]
-            .filter(Boolean)
-            .join(', '),
-          link: item.site,
-          _item: item,
-        }))
+        items
+          .filter((item) => item._geoloc && item._geoloc.length > 0)
+          .map((item) => ({
+            objectID: item.objectID,
+            selected: selected.includes(item.objectID),
+            latitude: item._geoloc[0].lat,
+            longitude: item._geoloc[0].lng,
+            title: [
+              item.distance + 'km',
+              item.city,
+              item.department,
+              item.region,
+              item.country,
+            ]
+              .filter(Boolean)
+              .join(', '),
+            link: item.site,
+            _item: item,
+          }))
       )}
     />
   );
