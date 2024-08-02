@@ -404,7 +404,7 @@ function Footer() {
         </a>
         , <a href="https://map.audax-club-parisien.com">ACP</a>,{' '}
         <a href="https://www.randonneursmondiaux.org/59-Calendrier.html">LRM</a>
-        . Code available on{' '}
+        , <a href="http://rusa.org">RUSA</a>. Code available on{' '}
         <a href="https://github.com/haroenv/brm-search">GitHub</a>.
       </p>
       <p>
