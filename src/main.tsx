@@ -23,6 +23,7 @@ import 'instantsearch.css/themes/satellite-min.css';
 import type {
   InstantSearchOptions,
   UiState as InstantSearchUiState,
+  Hit,
 } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';
@@ -125,6 +126,21 @@ const routing: InstantSearchOptions<UiState, IndexUiState>['routing'] = {
   }),
 };
 
+const insights: InstantSearchOptions<UiState, IndexUiState>['insights'] = {
+  onEvent(event, aa) {
+    if (event.eventType === 'view' && event.eventModifier === 'internal') {
+      return;
+    }
+    (event.payload as any).algoliaSource = ['instantsearch'];
+    if (event.eventModifier === 'internal') {
+      (event.payload as any).algoliaSource.push('instantsearch-internal');
+    }
+    if (event.insightsMethod) {
+      aa!(event.insightsMethod, event.payload as any);
+    }
+  },
+};
+
 const objectID = new URLSearchParams(location.search).get('objectID');
 const App = objectID ? DetailsApp : SearchApp;
 
@@ -139,6 +155,7 @@ function DetailsApp() {
         persistHierarchicalRootCount: true,
         preserveSharedStateOnUnmount: true,
       }}
+      insights={insights}
     >
       <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
         <Configure hitsPerPage={1} filters={`objectID:${objectID}`} />
@@ -186,6 +203,7 @@ function SearchApp() {
         searchClient={searchClient}
         indexName="brevets"
         routing={routing}
+        insights={insights}
         future={{
           persistHierarchicalRootCount: true,
           preserveSharedStateOnUnmount: true,
@@ -636,7 +654,7 @@ function GeoSearch({
   zoom?: number;
 }) {
   // @ts-expect-error GeoHit wrongly has __position and __queryID
-  const { items, refine } = useGeoSearch<Brevet>({});
+  const { items, refine, sendEvent } = useGeoSearch<Brevet>({});
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -648,11 +666,16 @@ function GeoSearch({
     }
 
     function handleMarkerClick(event: CustomEvent<{ points: Brevet[] }>) {
-      onMarkerClick(
+      const hits: Hit<Brevet>[] =
         typeof event.detail.points === 'string'
           ? JSON.parse(event.detail.points)
-          : event.detail.points
-      );
+          : event.detail.points;
+
+      sendEvent('click', hits, 'Hit clicked (geo)', {
+        positions: undefined,
+      });
+
+      onMarkerClick(hits);
     }
     function handleMapMove(event: CustomEvent<{ bounds: LngLatBounds }>) {
       if (!refineOnMapMove) return;
