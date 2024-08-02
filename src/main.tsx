@@ -23,7 +23,7 @@ import 'instantsearch.css/themes/satellite-min.css';
 import type {
   InstantSearchOptions,
   UiState as InstantSearchUiState,
-  Hit,
+  Hit as AlgoliaHit,
 } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';
@@ -151,11 +151,11 @@ function DetailsApp() {
     <InstantSearch
       searchClient={searchClient}
       indexName="brevets"
+      insights={insights}
       future={{
         persistHierarchicalRootCount: true,
         preserveSharedStateOnUnmount: true,
       }}
-      insights={insights}
     >
       <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
         <Configure hitsPerPage={1} filters={`objectID:${objectID}`} />
@@ -172,7 +172,13 @@ function DetailsApp() {
 }
 
 function DisplayDetails() {
-  const { items } = useHits<Brevet>();
+  const { items, sendEvent } = useHits<Brevet>();
+
+  useEffect(() => {
+    if (items[0]) {
+      sendEvent('conversion', items[0], 'Hit detail seen');
+    }
+  }, [items[0]?.objectID]);
 
   if (items.length === 0) {
     return;
@@ -180,7 +186,9 @@ function DisplayDetails() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
-      <Hits<Brevet> hitComponent={Hit} />
+      <div className="ais-Hits-item">
+        <Hit hit={items[0]} />
+      </div>
       <GeoSearch
         onMarkerClick={() => {}}
         selected={items.map((hit) => hit.objectID)}
@@ -666,7 +674,7 @@ function GeoSearch({
     }
 
     function handleMarkerClick(event: CustomEvent<{ points: Brevet[] }>) {
-      const hits: Hit<Brevet>[] =
+      const hits: AlgoliaHit<Brevet>[] =
         typeof event.detail.points === 'string'
           ? JSON.parse(event.detail.points)
           : event.detail.points;
