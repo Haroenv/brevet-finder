@@ -87,10 +87,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       department: brevet.Departement,
       city,
       _geoloc: [],
-      map: (brevet.RoadMap.indexOf(';') > -1
-        ? brevet.RoadMap.split(';')
-        : [brevet.RoadMap]
-      )
+      map: brevet.RoadMap.split(/[; ]/)
         .map((map) => map.trim())
         .filter(Boolean),
       site: brevet.SiteWeb,
