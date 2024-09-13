@@ -4,6 +4,7 @@ import * as acp from './export-acp';
 import * as map from './export-map';
 import * as lrm from './export-lrm';
 import * as usa from './export-usa';
+import * as auk from './export-auk';
 
 const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
 if (!ALGOLIA_APP) {
@@ -29,6 +30,7 @@ const flags = {
   map: true,
   lrm: true,
   usa: true,
+  auk: true,
   geocode: true,
   filter: true,
 };
@@ -38,6 +40,7 @@ const data = [
   ...(flags.map ? await map.getData() : []),
   ...(flags.lrm ? await lrm.getData() : []),
   ...(flags.usa ? await usa.getData() : []),
+  ...(flags.auk ? await auk.getData() : []),
 ];
 
 const filtered = flags.filter
