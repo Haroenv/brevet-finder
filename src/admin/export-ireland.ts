@@ -33,6 +33,15 @@ async function fetchViaXlsx() {
   return fetchXlsx(new URL(calendarUrl));
 }
 
+function eventUrl(eventName: string, distance: number) {
+  const formattedEventName = eventName
+    .replace(/[^a-zA-Z0-9\s-]+/g, '')
+    .replace(/\s+/g, '-')
+    .trim()
+    .toLowerCase();
+  return `https://www.audaxireland.org/events-calendar/gazetteer/${distance}km-events/${formattedEventName}/`;
+}
+
 function cleanBrevets(brevets: Raw[]): Brevet[] {
   return brevets.filter(brevet => !isNaN(parseInt(brevet.Date))).map((brevet) => {
     const distance = parseInt(brevet.Distance) || 0;
@@ -53,7 +62,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       city: brevet.Start,
       _geoloc: [],
       map: [],
-      site: 'https://www.audaxireland.org/events-calendar/',
+      site: eventUrl(brevet['Event Name'], distance),
       mail: brevet['E-Mail'],
       club: brevet['Organising Club'],
       ascent: 0,
@@ -67,3 +76,5 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 export async function getData() {
   return cleanBrevets(await fetchViaXlsx() as Raw[]);
 }
+
+console.log(await getData());
