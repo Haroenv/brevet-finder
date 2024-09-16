@@ -5,7 +5,7 @@ A simple search for Brevet Randonneurs Mondiaux (BRM) events.
 ## Installation
 
 ```bash
-bun install
+bun install --frozen-lockfile
 ```
 
 ## Export
