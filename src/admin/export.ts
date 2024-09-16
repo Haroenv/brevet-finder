@@ -5,6 +5,8 @@ import * as map from './export-map';
 import * as lrm from './export-lrm';
 import * as usa from './export-usa';
 import * as auk from './export-auk';
+import * as ireland from './export-ireland';
+import * as italy from './export-italy';
 
 const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
 if (!ALGOLIA_APP) {
@@ -31,6 +33,8 @@ const flags = {
   lrm: true,
   usa: true,
   auk: true,
+  ireland: true,
+  italy: true,
   geocode: true,
   filter: true,
 };
@@ -41,6 +45,8 @@ const data = [
   ...(flags.lrm ? await lrm.getData() : []),
   ...(flags.usa ? await usa.getData() : []),
   ...(flags.auk ? await auk.getData() : []),
+  ...(flags.ireland ? await ireland.getData() : []),
+  ...(flags.italy ? await italy.getData() : []),
 ];
 
 const filtered = flags.filter
