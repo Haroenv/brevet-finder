@@ -16,17 +16,26 @@ type Raw = {
 
 const country = 'Ireland';
 
-const XLSX_URL = new URL(
-  'https://www.audaxireland.org/wp-content/uploads/2024/07/Audax-Ireland-Calendar-2024-Excel.xlsx'
-);
+const CALENDAR_PAGE = new URL('https://www.audaxireland.org/events-calendar/');
+
+// something like https://www.audaxireland.org/wp-content/uploads/2024/07/Audax-Ireland-Calendar-2024-Excel.xlsx
+async function getXlsxUrl() {
+  const data = await fetch(CALENDAR_PAGE).then((res) => res.text());
+  const result = /https:\/\/www\.audaxireland\.org\/wp-content\/.+?\.xlsx/.exec(data);
+  if (result == null || result?.length == 0) {
+    throw new Error('Unable to parse https://www.audaxireland.org/events-calendar/ to extract XLSX file with calendar');
+  }
+  return result[0] || '';
+}
 
 async function fetchViaXlsx() {
-  return fetchXlsx(XLSX_URL);
+  const calendarUrl = await getXlsxUrl();
+  return fetchXlsx(new URL(calendarUrl));
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
   return brevets.filter(brevet => !isNaN(parseInt(brevet.Date))).map((brevet) => {
-    const distance = parseInt(brevet.Distance) || undefined;
+    const distance = parseInt(brevet.Distance) || 0;
     const dateNumber = dateToNum(shortYearDateToDate(brevet.Date));
     const date = numToDateString(dateNumber).split('-').reverse().join('/');
 
