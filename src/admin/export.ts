@@ -4,6 +4,7 @@ import * as acp from './export-acp';
 import * as map from './export-map';
 import * as lrm from './export-lrm';
 import * as usa from './export-usa';
+import * as aus from './export-aus';
 
 const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
 if (!ALGOLIA_APP) {
@@ -25,12 +26,13 @@ await searchClient.initIndex('brevets').browseObjects({
 });
 
 const flags = {
-  acp: true,
-  map: true,
-  lrm: true,
-  usa: true,
-  geocode: true,
-  filter: true,
+  acp: false,
+  map: false,
+  lrm: false,
+  usa: false,
+  australia: true,
+  geocode: false,
+  filter: false,
 };
 
 const data = [
@@ -38,6 +40,7 @@ const data = [
   ...(flags.map ? await map.getData() : []),
   ...(flags.lrm ? await lrm.getData() : []),
   ...(flags.usa ? await usa.getData() : []),
+  ...(flags.australia ? await aus.getData() : []),
 ];
 
 const filtered = flags.filter
