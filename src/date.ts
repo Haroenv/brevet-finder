@@ -108,3 +108,9 @@ export function weirdDateToNum(date: string) {
     10
   );
 }
+
+export function shortYearDateToDate(date: string) {
+  const [day, month, yearStr] = date.split('/');
+  const year = 2000 + parseInt(yearStr);
+  return new Date([year, month, day].join('-'));
+}
