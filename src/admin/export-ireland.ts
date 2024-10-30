@@ -1,6 +1,6 @@
 import { Brevet } from '../types';
 import { numToDateString, shortYearDateToDate, dateToNum } from '../date';
-import { fetchXlsx } from '../xlsx';
+import { fetchXlsx } from './xlsx';
 
 type Raw = {
   __rowNum__: string;
@@ -32,7 +32,7 @@ async function getXlsxUrl() {
   return result[0] || '';
 }
 
-async function fetchViaXlsx() {
+async function fetchViaXlsx(): Promise<Raw[]> {
   const calendarUrl = await getXlsxUrl();
   return fetchXlsx(new URL(calendarUrl));
 }
@@ -78,5 +78,5 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 }
 
 export async function getData() {
-  return cleanBrevets((await fetchViaXlsx()) as Raw[]);
+  return cleanBrevets(await fetchViaXlsx());
 }

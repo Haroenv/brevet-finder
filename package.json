@@ -11,6 +11,7 @@
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "@types/cheerio": "^0.22.35",
+    "@types/he": "^1.2.3",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
@@ -18,6 +19,7 @@
     "cheerio": "^1.0.0-rc.12",
     "core-js": "^3.37.1",
     "fast-csv": "^5.0.1",
+    "he": "^1.2.0",
     "instantsearch.css": "^8.3.0",
     "mapbox-gl": "^3.5.1",
     "react": "^18.3.1",

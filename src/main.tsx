@@ -433,8 +433,9 @@ function Footer() {
         , <a href="http://rusa.org">RUSA</a>,{' '}
         <a href="https://audax.uk">Audax UK</a>,{' '}
         <a href="https://www.audaxitalia.it">Audax Italia</a>,{' '}
-        <a href="https://www.audaxireland.org">Audax Ireland</a>. Code available
-        on <a href="https://github.com/haroenv/brm-search">GitHub</a>.
+        <a href="https://www.audaxireland.org">Audax Ireland</a>,{' '}
+        <a href="https://randonneurs.be">Randonneurs BE</a>. Code available on{' '}
+        <a href="https://github.com/haroenv/brm-search">GitHub</a>.
       </p>
       <p>
         A Brevet is a long-distance cycling event with as goal to move your own

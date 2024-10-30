@@ -1,6 +1,6 @@
 import { Brevet } from '../types';
 import { dateToNum } from '../date';
-import { fetchXlsx } from '../xlsx';
+import { fetchXlsx } from './xlsx';
 
 type Raw = {
   __rowNum__: string;
@@ -22,7 +22,7 @@ const XLSX_URL = new URL(
   'https://www.audaxitalia.it/brevetti_richieste_esporta_calendario.php'
 );
 
-async function fetchViaXlsx() {
+async function fetchViaXlsx(): Promise<Raw[]> {
   return fetchXlsx(XLSX_URL);
 }
 
@@ -61,5 +61,5 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 }
 
 export async function getData() {
-  return cleanBrevets((await fetchViaXlsx()) as Raw[]);
+  return cleanBrevets(await fetchViaXlsx());
 }
