@@ -82,9 +82,14 @@ const thisYear = new Date().getFullYear();
  * Transform from 01/Jan/2024 to 20240101
  */
 export function weirdDateToNum(date: string) {
-  const [year = thisYear, monthStr = 'Jan', day = '01'] = date
+  let [year = thisYear, monthStr = 'Jan', day = '01'] = date
     .split('/')
     .reverse();
+
+  // 2025-May-18
+  if (date.includes('-')) {
+    [year = thisYear, monthStr = 'Jan', day = '01'] = date.split('-');
+  }
 
   const month = (
     [
