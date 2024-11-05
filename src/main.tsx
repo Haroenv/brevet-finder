@@ -158,7 +158,7 @@ function DetailsApp() {
       }}
     >
       <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
-        <Configure hitsPerPage={1} filters={`objectID:${objectID}`} />
+        <Configure hitsPerPage={1} filters={`objectID:"${objectID}"`} />
         <Logo resets={false} />
         <p>
           Check out this brevet! To find other brevets, go to{' '}
@@ -189,13 +189,15 @@ function DisplayDetails() {
       <div className="ais-Hits-item">
         <Hit hit={items[0]} />
       </div>
-      <GeoSearch
-        onMarkerClick={() => {}}
-        selected={items.map((hit) => hit.objectID)}
-        center={items[0]._geoloc[0]}
-        zoom={5}
-        refineOnMapMove={false}
-      />
+      {items[0]._geoloc?.[0] && (
+        <GeoSearch
+          onMarkerClick={() => {}}
+          selected={items.map((hit) => hit.objectID)}
+          center={items[0]._geoloc[0]}
+          zoom={5}
+          refineOnMapMove={false}
+        />
+      )}
     </div>
   );
 }
@@ -565,7 +567,7 @@ function Hit({ hit }: { hit: Brevet }) {
       <p>{hit.mail}</p>
       <p>{hit.club}</p>
       <ul>
-        {hit.map.map((map: string) => (
+        {hit.map?.map((map: string) => (
           <li key={map}>
             <a href={map.startsWith('http') ? map : undefined} target="_blank">
               {map}
