@@ -14,7 +14,7 @@ export async function addGeoloc(brevets: Brevet[]) {
 
   for await (const [index, brevet] of brevets.entries()) {
     progress.update(index);
-    if (brevet._geoloc[0]) continue;
+    if (brevet._geoloc?.[0]) continue;
 
     const address = [
       brevet.city,

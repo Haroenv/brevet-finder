@@ -65,18 +65,12 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         date,
         dateNumber,
         distance: brevet.AwardDistance,
-        region: '',
-        department: '',
         country,
         city: cityExtended,
         _geoloc: [{ lat: brevet.StartLatitude, lng: brevet.StartLongitude }],
         site: url(brevet.Url),
-        mail: '',
         club: brevet.Body,
-        map: [],
         ascent: climb,
-        time: 0,
-        status: '',
         meta: brevet,
       };
     });

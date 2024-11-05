@@ -86,7 +86,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       region,
       department: brevet.Departement,
       city,
-      _geoloc: [],
       map: brevet.RoadMap.split(/[; ]/)
         .map((map) => map.trim())
         .filter(Boolean),

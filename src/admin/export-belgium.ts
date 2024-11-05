@@ -125,8 +125,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       name: title,
       distance,
       country,
-      region: '',
-      department: '',
       city,
       map: $('a[href^=https://www.openrunner]')
         .toArray()
@@ -143,8 +141,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         .trim(),
       time: 0,
       ascent: 0,
-      status: '',
-      _geoloc: [],
       meta: brevet,
     };
   });

@@ -139,17 +139,12 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       distance,
       name: brevet['Event Name'],
       country: brevet.Country,
-      region: '',
-      department: '',
       city: brevet['Start Location'],
-      _geoloc: [],
       map: [brevet.links?.Distance!].filter(Boolean),
-      site: brevet.links?.['Event Name'] || '',
-      mail: '',
+      site: brevet.links?.['Event Name'],
       club: brevet.Organizer,
       ascent: parseInt(brevet.Elevation.replace(',', ''), 10),
       time,
-      status: '',
       meta: brevet,
     };
   });

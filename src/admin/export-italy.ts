@@ -45,16 +45,9 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         name: brevet.MANIFESTAZIONE,
         country: country,
         region: brevet.REGIONE,
-        department: '',
         city: brevet.COMUNE,
-        _geoloc: [],
-        map: [],
         site: 'https://www.audaxitalia.it/index.php?pg=manifestazioni',
-        mail: '',
         club: brevet.ORGANIZZATORE,
-        ascent: 0,
-        time: 0,
-        status: '',
         meta: brevet,
       };
     });

@@ -10,25 +10,6 @@ import * as italy from './export-italy';
 import * as belgium from './export-belgium';
 import * as netherlands from './export-netherlands';
 
-const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
-if (!ALGOLIA_APP) {
-  throw new Error('Missing ALGOLIA_APP env variable');
-}
-if (!ALGOLIA_WRITE) {
-  throw new Error('Missing ALGOLIA_WRITE env variable');
-}
-
-const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
-const allObjectIds = new Set<string>();
-await searchClient.initIndex('brevets').browseObjects({
-  attributesToRetrieve: ['objectID'],
-  batch: (objects) => {
-    objects.forEach((object) => {
-      allObjectIds.add(object.objectID);
-    });
-  },
-});
-
 const flags = {
   acp: true,
   map: true,
@@ -43,6 +24,27 @@ const flags = {
   filter: true,
 };
 
+const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
+if (!ALGOLIA_APP && flags.filter) {
+  throw new Error('Missing ALGOLIA_APP env variable');
+}
+if (!ALGOLIA_WRITE && flags.filter) {
+  throw new Error('Missing ALGOLIA_WRITE env variable');
+}
+
+const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
+const allObjectIds = new Set<string>();
+if (flags.filter) {
+  await searchClient.initIndex('brevets').browseObjects({
+    attributesToRetrieve: ['objectID'],
+    batch: (objects) => {
+      objects.forEach((object) => {
+        allObjectIds.add(object.objectID);
+      });
+    },
+  });
+}
+
 const data = [
   ...(flags.acp ? await acp.getData() : []),
   ...(flags.map ? await map.getData() : []),
@@ -55,11 +57,19 @@ const data = [
   ...(flags.netherlands ? await netherlands.getData() : []),
 ];
 
-const filtered = flags.filter
+const newObjects = flags.filter
   ? data.filter((brevet) => !allObjectIds.has(brevet.objectID))
   : data;
+const existingObjects = flags.filter
+  ? data.filter((brevet) => allObjectIds.has(brevet.objectID))
+  : data;
 
-const objects = flags.geocode ? await addGeoloc(filtered) : filtered;
+const withGeoLoc = flags.geocode ? await addGeoloc(newObjects) : newObjects;
+const withoutGeoLoc = existingObjects.filter((brevet) =>
+  allObjectIds.has(brevet.objectID)
+);
+
+const objects = [...withGeoLoc, ...withoutGeoLoc];
 
 await Bun.write('brevets.json', JSON.stringify(objects, null, 2));
 

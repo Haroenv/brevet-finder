@@ -140,17 +140,12 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       name: title,
       distance,
       country,
-      region: '',
-      department: '',
       city,
-      map: [],
       site: brevet.url,
       mail,
       club,
       time: 0,
       ascent: 0,
-      status: '',
-      _geoloc: [],
       meta: brevet,
     };
   });

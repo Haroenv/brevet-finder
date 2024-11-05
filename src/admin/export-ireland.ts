@@ -62,16 +62,10 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         name: brevet['Event Name'],
         country: country,
         region: brevet.Province,
-        department: '',
         city: brevet.Start,
-        _geoloc: [],
-        map: [],
         site: eventUrl(brevet['Event Name'], distance),
         mail: brevet['E-Mail'],
         club: brevet['Organising Club'],
-        ascent: 0,
-        time: 0,
-        status: '',
         meta: brevet,
       };
     });
