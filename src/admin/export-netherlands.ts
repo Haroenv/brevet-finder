@@ -131,6 +131,8 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       organizer: '',
     };
 
+    brevet.description = brevet.description.slice(0, 10_000);
+
     return {
       objectID: [date, distance, country, city].join('__'),
       date,
