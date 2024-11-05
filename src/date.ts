@@ -83,6 +83,7 @@ const thisYear = new Date().getFullYear();
  */
 export function weirdDateToNum(date: string) {
   let [year = thisYear, monthStr = 'Jan', day = '01'] = date
+    .replace('//', '/')
     .split('/')
     .reverse();
 
