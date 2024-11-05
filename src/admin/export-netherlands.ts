@@ -1,6 +1,5 @@
 import { Brevet } from '../types';
 import he from 'he';
-import * as cheerio from 'cheerio';
 
 type Raw = {
   id: string;
@@ -71,10 +70,22 @@ type Raw = {
   hide_from_listings: boolean;
   sticky: boolean;
   featured: boolean;
-  categories: { name: 'brm' | '200' | '300' | '400' }[];
-  tags: never[];
-  venue: never[];
-  organizer: never[];
+  categories: never[];
+  tags: { name: '200' | '2024' | 'BRM' }[];
+  venue: {
+    id: number;
+    author: string;
+    status: 'publish';
+    venue: string;
+    address: string;
+    city: string;
+    country: string;
+    zip: string;
+  };
+  organizer: {
+    email: string;
+    organizer: string;
+  }[];
 };
 
 async function fetchBrevets(
@@ -82,7 +93,7 @@ async function fetchBrevets(
   page: number = 1
 ): Promise<Raw[]> {
   const url = new URL(
-    'https://randonneurs.be/nl/wp-json/tribe/events/v1/events/'
+    'https://www.randonneurs.nl/wp-json/tribe/events/v1/events/'
   );
   url.search = new URLSearchParams({
     page: page.toString(),
@@ -105,18 +116,20 @@ async function fetchBrevets(
 function cleanBrevets(brevets: Raw[]): Brevet[] {
   return brevets.map((brevet) => {
     const distance = parseInt(
-      brevet.categories.find(
-        (cat) => cat.name !== 'brm' && Number.isInteger(parseInt(cat.name))
+      brevet.tags.find(
+        (tag) => Number.isInteger(parseInt(tag.name)) && tag.name.endsWith('00')
       )?.name || '0'
     );
-    const country = 'Belgium';
-    const city = brevet.slug.split('-')[3]; // 2025-brm-500-oudenburg
+    const country = 'The Netherlands';
+    const city = brevet.venue.city;
     const title = he.decode(brevet.title);
     const { year, month, day } = brevet.start_date_details;
     const date = [day, month, year].join('/');
     const dateNumber = parseInt([year, month, day].join(''), 10);
-
-    const $ = cheerio.load(brevet.description);
+    const { email: mail, organizer: club } = brevet.organizer[0] || {
+      email: '',
+      organizer: '',
+    };
 
     return {
       objectID: [date, distance, country, city].join('__'),
@@ -128,19 +141,10 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       region: '',
       department: '',
       city,
-      map: $('a[href^=https://www.openrunner]')
-        .toArray()
-        .map((el) => $(el).attr('href'))
-        .filter((x): x is string => !!x),
+      map: [],
       site: brevet.url,
-      mail: ($('a[href^=mailto:]').attr('href') || '').replace('mailto:', ''),
-      club: $('a[href^=mailto:]')
-        .parent()
-        .parent()
-        .find('li')
-        .first()
-        .text()
-        .trim(),
+      mail,
+      club,
       time: 0,
       ascent: 0,
       status: '',
