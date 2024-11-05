@@ -364,7 +364,7 @@ function Main() {
             >
               <ViewSwitcher />
               <Stats />
-              <PoweredBy />
+              <PoweredBy style={{ translate: '0 1.5px' }} />
             </div>
           </div>
         )}
