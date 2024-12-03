@@ -103,8 +103,8 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 export async function getData() {
   return cleanBrevets(
     await fetchBrevets({
-      from: '2023-01-01',
-      to: '2026-01-01',
+      from: '2024-12-01',
+      to: '2026-12-01',
     })
   );
 }
