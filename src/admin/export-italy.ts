@@ -54,5 +54,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 }
 
 export async function getData() {
+  console.log('Fetching Italy brevets...');
   return cleanBrevets(await fetchViaXlsx());
 }

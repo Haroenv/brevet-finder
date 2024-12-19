@@ -19,7 +19,7 @@ const flags = {
   ireland: true,
   italy: true,
   belgium: true,
-  netherlands: true,
+  netherlands: false,
   geocode: true,
   filter: true,
 };

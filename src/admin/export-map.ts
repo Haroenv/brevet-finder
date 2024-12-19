@@ -77,5 +77,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 }
 
 export async function getData() {
+  console.log('Fetching Supabase brevets...');
   return cleanBrevets(await fetchBrevets());
 }

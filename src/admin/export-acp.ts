@@ -101,6 +101,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 }
 
 export async function getData() {
+  console.log('Fetching ACP brevets...');
   return cleanBrevets(
     await fetchBrevets({
       from: '2024-12-01',

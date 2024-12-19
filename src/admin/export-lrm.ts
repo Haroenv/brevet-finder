@@ -151,5 +151,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 }
 
 export async function getData() {
+  console.log('Fetching Randonneurs Mondiaux brevets...');
   return cleanBrevets(await fetchViaHtml());
 }
