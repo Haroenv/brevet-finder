@@ -1,5 +1,6 @@
 import { numToDate } from '../date';
 import { Brevet } from '../types';
+import { checkOk } from './fetch-utils';
 
 const { SUPABASE = '' } = process.env;
 if (!SUPABASE) {
@@ -39,7 +40,9 @@ async function fetchBrevets(): Promise<Raw[]> {
       method: 'GET',
       referrer: 'https://map.audax-club-parisien.com/',
     }
-  ).then((res) => res.json());
+  )
+    .then(checkOk)
+    .then((res) => res.json());
 
   if (!Array.isArray(brevets)) throw new Error('Invalid response');
 

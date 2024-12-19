@@ -1,4 +1,5 @@
 import { Brevet } from '../types';
+import { checkOk } from './fetch-utils';
 import he from 'he';
 
 type Raw = {
@@ -104,7 +105,9 @@ async function fetchBrevets(
   }).toString();
 
   const { events = [], ...json }: { events: Raw[]; total_pages: number } =
-    await fetch(url).then((res) => res.json());
+    await fetch(url)
+      .then(checkOk)
+      .then((res) => res.json());
 
   if (json.total_pages > page) {
     return fetchBrevets([...prev, ...events], page + 1);

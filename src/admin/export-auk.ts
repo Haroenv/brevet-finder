@@ -1,4 +1,5 @@
 import { Brevet } from '../types';
+import { checkOk } from './fetch-utils';
 
 type Raw = {
   StartCondition: string;
@@ -20,7 +21,9 @@ type Raw = {
 async function fetchBrevets() {
   const data = await fetch(
     'https://www.audax.uk/umbraco/surface/Events/Search?DurationNights=360&pageSize=300'
-  ).then((res) => res.json());
+  )
+    .then(checkOk)
+    .then((res) => res.json());
 
   if (!data.hasOwnProperty('Items') || !Array.isArray(data['Items']))
     throw new Error('Invalid response from audax.uk website');

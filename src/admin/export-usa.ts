@@ -1,6 +1,7 @@
 import { Brevet } from '../types';
 import * as cheerio from 'cheerio';
 import { cleanRegion } from './clean-utils';
+import { checkOk } from './fetch-utils';
 
 type Raw = {
   location: string;
@@ -15,9 +16,9 @@ type Raw = {
 };
 
 async function fetchBrevets() {
-  const html = await fetch('https://rusa.org/cgi-bin/eventsearch_PF.pl').then(
-    (res) => res.text()
-  );
+  const html = await fetch('https://rusa.org/cgi-bin/eventsearch_PF.pl')
+    .then(checkOk)
+    .then((res) => res.text());
   const $ = cheerio.load(html);
 
   const output: Raw[] = $('table[width] tbody tr')

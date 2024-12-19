@@ -1,5 +1,6 @@
 import { Brevet } from '../types';
 import { cleanRegion } from './clean-utils';
+import { checkOk } from './fetch-utils';
 
 type Raw = {
   Date: string;
@@ -45,7 +46,9 @@ async function fetchBrevets(data: {
       redirect: 'follow',
       referrer: 'https://www.audax-club-parisien.com/',
     }
-  ).then((res) => res.json());
+  )
+    .then(checkOk)
+    .then((res) => res.json());
 
   if (!Array.isArray(brevets)) throw new Error('Invalid response');
 

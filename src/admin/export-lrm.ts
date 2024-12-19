@@ -2,6 +2,7 @@ import { parseString } from 'fast-csv';
 import * as cheerio from 'cheerio';
 import { Brevet } from '../types';
 import { numToDate, numToDateString, weirdDateToNum } from '../date';
+import { checkOk } from './fetch-utils';
 
 type Raw = {
   Date: string;
@@ -26,7 +27,9 @@ const GOOGLE_DOCS_URL = new URL(
 );
 
 async function fetchViaHtml() {
-  const html = await fetch(GOOGLE_DOCS_URL).then((res) => res.text());
+  const html = await fetch(GOOGLE_DOCS_URL)
+    .then(checkOk)
+    .then((res) => res.text());
   const $ = cheerio.load(html);
 
   return Array.from($('table tr')).flatMap((row) => {
