@@ -1,0 +1,140 @@
+openapi: 3.0.1
+info:
+  title: Randonneurs NL public API
+  description: Public endpoints for fetching data from the Randonneurs NL website
+  contact:
+    name: Peter Fokkinga
+    url: https://randonneurs.nl/en/contact
+    email: webmaster@randonneurs.nl
+  license:
+    name: CC BY-SA
+    url: https://creativecommons.org/licenses/by-sa/4.0/
+  version: '1.0'
+servers:
+  - url: https://randonneurs.nl
+    description: Production server
+paths:
+  /api/v1/events:
+    get:
+      summary:
+        "Get a list of events. Note that at most data for 12 months will be\
+        \ returned, even if you explicitly ask for more. Events for the next (calendar)\
+        \ year are usually published all at once in November."
+      operationId: getEvents
+      parameters:
+        - name: language
+          in: query
+          description:
+            Effects the urls in the response as well as the language of the
+            event summary (if available)
+          schema:
+            type: string
+            default: nl
+            enum:
+              - nl
+              - en
+              - de
+        - name: from
+          in: query
+          description: Only return events that start after this date; defaults to `today`.
+          schema:
+            type: string
+            format: date
+            nullable: true
+            example: 2024-12-31
+        - name: until
+          in: query
+          description:
+            Only return events that start before this date; defaults to "from"
+            plus 3 months.
+          schema:
+            type: string
+            format: date
+            nullable: true
+            example: 2025-03-13
+      responses:
+        '200':
+          description: getEvents 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublishedEvent'
+components:
+  schemas:
+    Contact:
+      required:
+        - email
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+      description: Contact information of the organiser of the event.
+    Location:
+      required:
+        - city
+        - zipcode
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the location
+          example: Fietscafe De Bel
+        address:
+          type: string
+          description: Street and house number
+          example: Dorpsstraat 1
+        zipcode:
+          type: string
+        city:
+          type: string
+        region:
+          type: string
+          description: Mostly Dutch province
+          example: Fryslân
+        Country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          example: NL
+      description: The location where the event starts (and usually finishes).
+    PublishedEvent:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the event
+          example: 'Bos’n, bult’n en ’n diek 3.0'
+        summary:
+          type: string
+          description: 'A brief description of the event, contains HTML'
+        url:
+          type: string
+          description:
+            "Public url for full information, route preview and registration.\
+            \ Serves HTML."
+        start:
+          type: string
+          description: 'Start date/time in UTC, example 2024-12-31T20:00:00Z[UTC]'
+          format: date-time
+        from:
+          description: The location where the event starts (and usually finishes).
+          allOf:
+            - $ref: '#/components/schemas/Location'
+        distance:
+          type: integer
+          description: Nominal distance of the brevet in kilometers.
+          format: int32
+        entryFee:
+          type: integer
+          description:
+            "Entry fee in euros, excluding possible discount for Randonneurs\
+            \ NL members."
+          format: int32
+        contact:
+          description: Contact information of the organiser of the event.
+          allOf:
+            - $ref: '#/components/schemas/Contact'
