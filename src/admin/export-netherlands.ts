@@ -22,8 +22,7 @@ async function fetchBrevets(): Promise<Raw[]> {
   const url = new URL('https://randonneurs.nl/api/v1/events');
   url.search = new URLSearchParams({
     from: new Date().toISOString().split('T')[0],
-    // TODO: fetch future events once endpoint accepts "until" parameter
-    // until: '2026-01-01',
+    until: '2026-01-01',
   }).toString();
 
   const events: Raw[] = await fetch(url)
