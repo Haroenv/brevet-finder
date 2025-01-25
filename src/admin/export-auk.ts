@@ -70,7 +70,10 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         distance: brevet.AwardDistance,
         country,
         city: cityExtended,
-        _geoloc: [{ lat: brevet.StartLatitude, lng: brevet.StartLongitude }],
+        _geoloc:
+          brevet.StartLatitude && brevet.StartLongitude
+            ? [{ lat: brevet.StartLatitude, lng: brevet.StartLongitude }]
+            : [],
         site: url(brevet.Url),
         club: brevet.Body,
         ascent: climb,
