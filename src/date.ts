@@ -115,8 +115,11 @@ export function weirdDateToNum(date: string) {
   );
 }
 
+/**
+ * Transforms from 01/01/24 or 01.01.24 to Date(2024-01-01)
+ */
 export function shortYearDateToDate(date: string) {
-  const [day, month, yearStr] = date.split('/');
+  const [day, month, yearStr] = date.split(/[/\.]/);
   const year = 2000 + parseInt(yearStr);
   return new Date([year, month, day].join('-'));
 }
