@@ -28,6 +28,7 @@ export async function addGeoloc(brevets: Brevet[]) {
 
     const out = await pk.search(address, {
       maxResults: 1,
+      types: ['city'],
     });
 
     const result = out.results[0] || {};
