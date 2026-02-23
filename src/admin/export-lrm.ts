@@ -27,7 +27,15 @@ const GOOGLE_DOCS_URL = new URL(
 );
 
 async function fetchViaHtml() {
-  const html = await fetch(GOOGLE_DOCS_URL)
+  // The actual sheet data
+  const url =
+    GOOGLE_DOCS_URL.origin +
+    GOOGLE_DOCS_URL.pathname +
+    '/sheet' +
+    '?headers=false&gid=' +
+    GOOGLE_DOCS_URL.searchParams.get('gid');
+
+  const html = await fetch(url)
     .then(checkOk)
     .then((res) => res.text());
   const $ = cheerio.load(html);
@@ -85,7 +93,7 @@ async function fetchViaHtml() {
   });
 }
 
-// does not work because it does not have the links
+// CSV export doesn't include the links
 async function fetchViaCsv() {
   const id = GOOGLE_DOCS_URL.pathname.split('/').at(-2);
   const url = `https://docs.google.com/spreadsheets/d/e/${id}/pub?output=csv`;
