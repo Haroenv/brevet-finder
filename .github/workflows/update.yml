@@ -22,7 +22,7 @@ jobs:
       - name: Export content
         run: bun run export
         env:
-          GOOGLE_MAPS: ${{ secrets.GOOGLE_MAPS }}
+          PLACEKIT: ${{ secrets.PLACEKIT }}
           SUPABASE: ${{ secrets.SUPABASE }}
           ALGOLIA_APP: ${{ secrets.ALGOLIA_APP }}
           ALGOLIA_WRITE: ${{ secrets.ALGOLIA_WRITE }}
