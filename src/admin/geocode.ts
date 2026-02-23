@@ -1,13 +1,14 @@
 import { Client } from '@googlemaps/google-maps-services-js';
 import { Progress } from './progress';
 import { Brevet } from '../types';
+import PlaceKit from '@placekit/client-js';
 
-const { GOOGLE_MAPS = '' } = process.env;
-if (!GOOGLE_MAPS) {
-  throw new Error('Missing GOOGLE_MAPS env variable');
+const { PLACEKIT = '' } = process.env;
+if (!PLACEKIT) {
+  throw new Error('Missing PLACEKIT env variable');
 }
 
-const client = new Client({});
+const pk = PlaceKit(PLACEKIT);
 
 export async function addGeoloc(brevets: Brevet[]) {
   const progress = new Progress(brevets.length);
@@ -25,14 +26,16 @@ export async function addGeoloc(brevets: Brevet[]) {
       .filter(Boolean)
       .join(', ');
 
-    const out = await client.geocode({
-      params: {
-        address,
-        key: GOOGLE_MAPS,
-      },
+    const out = await pk.search(address, {
+      maxResults: 1,
     });
 
-    const location = out?.data?.results?.[0]?.geometry?.location;
+    const result = out.results[0] || {};
+    const location = {
+      lat: result.lat!,
+      lng: result.lng!,
+    };
+
     if (location.lat && location.lng) {
       brevet._geoloc = [location];
     }
