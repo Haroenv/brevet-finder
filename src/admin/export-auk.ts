@@ -1,33 +1,86 @@
 import { Brevet } from '../types';
 import { checkOk } from './fetch-utils';
 
-type Raw = {
-  StartCondition: string;
-  StartAddressDescription: string;
-  Category: string;
-  EventDateFormatted: string;
-  AwardDistance: number;
-  ActualDistance: number;
-  Title: string;
-  OrganiserFullName: string;
-  IsCancelled: boolean;
-  StartLatitude: number;
-  StartLongitude: number;
-  Body: string;
-  Climb?: number;
+type CalendarRaw = {
+  Name: string;
+  NominalDistance: number;
+  Distance: number;
+  AAAPoints: number;
+  OrganizerName: string;
   Url: string;
+  Id: number;
+  StartLocation: string;
+  EventDate: string;
 };
 
+type CalendarResponse = {
+  Results: CalendarRaw[];
+  CurrentPage: number;
+  TotalPages: number;
+};
+
+function isCalendarResponse(data: unknown): data is CalendarResponse {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+
+  return (
+    'Results' in data &&
+    Array.isArray((data as Record<string, unknown>).Results) &&
+    'CurrentPage' in data &&
+    'TotalPages' in data
+  );
+}
+
 async function fetchBrevets() {
-  const data = await fetch(
-    'https://www.audax.uk/umbraco/surface/Events/Search?DurationNights=360&pageSize=300'
+  const firstPage = await fetch(
+    'https://www.audax.uk/umbraco/api/EventSearch/SearchCalendar',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        DurationNights: 360,
+        pageSize: 300,
+        page: 1,
+      }),
+    }
   )
     .then(checkOk)
     .then((res) => res.json());
 
-  if (!data.hasOwnProperty('Items') || !Array.isArray(data['Items']))
-    throw new Error('Invalid response from audax.uk website');
-  return data['Items'];
+  if (!isCalendarResponse(firstPage)) {
+    throw new Error('Invalid SearchCalendar response from audax.uk website');
+  }
+
+  const all = [...firstPage.Results];
+  for (let page = 2; page <= firstPage.TotalPages; page++) {
+    const data = await fetch(
+      'https://www.audax.uk/umbraco/api/EventSearch/SearchCalendar',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          DurationNights: 360,
+          pageSize: 300,
+          page,
+        }),
+      }
+    )
+      .then(checkOk)
+      .then((res) => res.json());
+
+    if (!isCalendarResponse(data)) {
+      throw new Error(`Invalid SearchCalendar response for page ${page}`);
+    }
+
+    all.push(...data.Results);
+  }
+
+  return all;
 }
 
 const url = (pathOrUrl?: string) =>
@@ -40,46 +93,33 @@ function padDate(date: number) {
   return date;
 }
 
-function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets
-    .filter((brevet) => !brevet.IsCancelled)
-    .map((brevet) => {
-      const jsDate = new Date(brevet.EventDateFormatted);
-      const year = jsDate.getFullYear();
-      const month = padDate(jsDate.getMonth() + 1);
-      const day = padDate(jsDate.getDate());
-      const dateNumber = parseInt([year, month, day].join(''));
-      const date = [day, month, year].join('/');
-      const city = brevet.StartCondition.trim();
-      const cityExtended = (city + ' ' + brevet.StartAddressDescription)
-        .replace(' ,', ',')
-        .trim();
-      const country = 'UK';
-      const climb = brevet.Climb || 0;
+function cleanBrevets(brevets: CalendarRaw[]): Brevet[] {
+  return brevets.map((brevet) => {
+    const jsDate = new Date(brevet.EventDate);
+    const year = jsDate.getFullYear();
+    const month = padDate(jsDate.getMonth() + 1);
+    const day = padDate(jsDate.getDate());
+    const dateNumber = parseInt([year, month, day].join(''));
+    const date = [day, month, year].join('/');
+    const city = (brevet.StartLocation || '').trim();
+    const country = 'UK';
+    const distance = brevet.NominalDistance || brevet.Distance;
 
-      return {
-        objectID: [
-          date,
-          brevet.AwardDistance,
-          country,
-          city.replace(/\W+/g, '_'),
-        ].join('__'),
-        name: brevet.Title,
-        date,
-        dateNumber,
-        distance: brevet.AwardDistance,
-        country,
-        city: cityExtended,
-        _geoloc:
-          brevet.StartLatitude && brevet.StartLongitude
-            ? [{ lat: brevet.StartLatitude, lng: brevet.StartLongitude }]
-            : [],
-        site: url(brevet.Url),
-        club: brevet.Body,
-        ascent: climb,
-        meta: brevet,
-      };
-    });
+    return {
+      objectID: [date, distance, country, city.replace(/\W+/g, '_')].join('__'),
+      name: brevet.Name,
+      date,
+      dateNumber,
+      distance,
+      country,
+      city,
+      _geoloc: [],
+      site: url(brevet.Url),
+      club: brevet.OrganizerName,
+      ascent: brevet.AAAPoints || 0,
+      meta: brevet,
+    };
+  });
 }
 
 export async function getData() {
