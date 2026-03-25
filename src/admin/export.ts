@@ -34,12 +34,20 @@ if (!ALGOLIA_WRITE && flags.filter) {
 
 const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
 const allObjectIds = new Set<string>();
+const existingGeoByObjectId = new Map<string, { lat: number; lng: number }>();
 if (flags.filter) {
   await searchClient.initIndex('brevets').browseObjects({
-    attributesToRetrieve: ['objectID'],
+    attributesToRetrieve: ['objectID', '_geoloc'],
     batch: (objects) => {
       objects.forEach((object) => {
         allObjectIds.add(object.objectID);
+
+        const existingGeoLoc = (
+          object as { _geoloc?: Array<{ lat: number; lng: number }> }
+        )._geoloc?.[0];
+        if (existingGeoLoc?.lat && existingGeoLoc?.lng) {
+          existingGeoByObjectId.set(object.objectID, existingGeoLoc);
+        }
       });
     },
   });
@@ -64,12 +72,33 @@ const existingObjects = flags.filter
   ? data.filter((brevet) => allObjectIds.has(brevet.objectID))
   : data;
 
-const withGeoLoc = flags.geocode ? await addGeoloc(newObjects) : newObjects;
-const withoutGeoLoc = existingObjects.filter((brevet) =>
-  allObjectIds.has(brevet.objectID)
+const existingObjectsWithInheritedGeoLoc = existingObjects.map((brevet) => {
+  if (brevet._geoloc?.[0]) {
+    return brevet;
+  }
+
+  const existingGeoLoc = existingGeoByObjectId.get(brevet.objectID);
+  if (!existingGeoLoc) {
+    return brevet;
+  }
+
+  return {
+    ...brevet,
+    _geoloc: [existingGeoLoc],
+  };
+});
+
+const existingWithGeoLoc = existingObjectsWithInheritedGeoLoc.filter((brevet) =>
+  Boolean(brevet._geoloc?.[0])
+);
+const existingWithoutGeoLoc = existingObjectsWithInheritedGeoLoc.filter(
+  (brevet) => !brevet._geoloc?.[0]
 );
 
-const objects = [...withGeoLoc, ...withoutGeoLoc];
+const toGeocode = [...newObjects, ...existingWithoutGeoLoc];
+const geocoded = flags.geocode ? await addGeoloc(toGeocode) : toGeocode;
+
+const objects = [...geocoded, ...existingWithGeoLoc];
 
 await Bun.write('brevets.json', JSON.stringify(objects, null, 2));
 
