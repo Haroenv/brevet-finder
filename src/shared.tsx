@@ -57,7 +57,8 @@ export function Logo({ resets = true }: { resets?: boolean }) {
         style={{
           fontSize: 'inherit',
           fontVariant: 'all-small-caps',
-          color: '#5a5e9a',
+          color:
+            'rgba(var(--ais-primary-color-rgb),var(--ais-primary-color-alpha, 1))',
         }}
       >
         Brevet Finder

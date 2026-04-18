@@ -1,7 +1,8 @@
 import algoliasearch from 'algoliasearch/lite';
 import * as ReactDOM from 'react-dom/client';
-import 'instantsearch.css/themes/satellite-min.css';
+import 'instantsearch.css/themes/nova-min.css';
 import type { InstantSearchOptions } from 'instantsearch.js';
+import './main.css';
 import './map';
 import { DetailsApp } from './details';
 import { SearchApp } from './search';

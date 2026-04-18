@@ -1,5 +1,4 @@
 import { Configure, InstantSearch, useHits } from 'react-instantsearch';
-import 'instantsearch.css/themes/satellite-min.css';
 import type { InstantSearchOptions } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';

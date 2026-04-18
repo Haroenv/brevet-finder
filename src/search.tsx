@@ -14,7 +14,6 @@ import {
   useRefinementList,
 } from 'react-instantsearch';
 import { history } from 'instantsearch.js/es/lib/routers';
-import 'instantsearch.css/themes/satellite-min.css';
 import type {
   InstantSearchOptions,
   UiState as InstantSearchUiState,
@@ -279,7 +278,8 @@ function Main() {
         <div
           style={{
             position: 'absolute',
-            background: 'white',
+            backgroundColor:
+              'rgba(var(--ais-background-color-rgb), var(--ais-background-color-alpha, 1))',
             width: '100%',
             top: 0,
             left: 0,

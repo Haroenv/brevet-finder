@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "brm-search",
@@ -16,7 +17,7 @@
         "core-js": "^3.44.0",
         "fast-csv": "^5.0.2",
         "he": "^1.2.0",
-        "instantsearch.css": "^8.5.1",
+        "instantsearch.css": "https://pkg.pr.new/algolia/instantsearch/instantsearch.css@6949",
         "mapbox-gl": "^3.13.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
@@ -436,7 +437,7 @@
 
     "instantsearch-ui-components": ["instantsearch-ui-components@0.11.2", "", { "dependencies": { "@babel/runtime": "^7.27.6" } }, "sha512-XxwqUY6NifxSvHYfyfJRiGhqYqHXQFcFNOEjNyFptB9HOkx14yCdayKar4BZxGx353FnFD6b4Z8LdzbGud+RFA=="],
 
-    "instantsearch.css": ["instantsearch.css@8.5.1", "", {}, "sha512-lu4gWSa2crIA1OAuFwtrNJy4d8oRvKmkY5gv8Dbf3tuedQMm6cf7K+1kXJKRAHLm4pZos9RXIH10m57UfDKbyg=="],
+    "instantsearch.css": ["instantsearch.css@https://pkg.pr.new/algolia/instantsearch/instantsearch.css@6949", { "dependencies": { "tweakpane": "4.0.5" } }, "sha512-3jqqLdfbamOdT19/bcq9221j1zY/Ww9wne+yck3fy8I6P94H8iPcT+GQ2tZ91C26mRBAKdtjqQC9B11loXFmCg=="],
 
     "instantsearch.js": ["instantsearch.js@4.79.2", "", { "dependencies": { "@algolia/events": "^4.0.1", "@types/dom-speech-recognition": "^0.0.1", "@types/google.maps": "^3.55.12", "@types/hogan.js": "^3.0.0", "@types/qs": "^6.5.3", "algoliasearch-helper": "3.26.0", "hogan.js": "^3.0.2", "htm": "^3.0.0", "instantsearch-ui-components": "0.11.2", "preact": "^10.10.0", "qs": "^6.5.1 < 6.10", "search-insights": "^2.17.2" }, "peerDependencies": { "algoliasearch": ">= 3.1 < 6" } }, "sha512-UwTsbzkb/dsNBAWiFCFlxV1vKviPSKETi5OOQbCVqpoGcHVayXDLlEqFx+WCoFJT0nxzxpNI9QmitbYH5ufoVw=="],
 
@@ -627,6 +628,8 @@
     "to-regex-range": ["to-regex-range@5.0.1", "", { "dependencies": { "is-number": "^7.0.0" } }, "sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ=="],
 
     "tslib": ["tslib@2.6.3", "", {}, "sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ=="],
+
+    "tweakpane": ["tweakpane@4.0.5", "", {}, "sha512-rxEXdSI+ArlG1RyO6FghC4ZUX8JkEfz8F3v1JuteXSV0pEtHJzyo07fcDG+NsJfN5L39kSbCYbB9cBGHyuI/tQ=="],
 
     "typescript": ["typescript@5.5.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-/hreyEujaB0w76zKo6717l3L0o/qEUtRgdvUBvlkhoWeOVMjMuHNHk0BRBzikzuGDqNmPQbg5ifMEqsHLiIUcQ=="],
 
