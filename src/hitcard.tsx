@@ -25,6 +25,7 @@ export function HitCard({ hit }: { hit: Brevet }) {
   const location = [hit.city, hit.department, hit.region, hit.country]
     .filter(Boolean)
     .join(', ');
+  const name = hit.name || [hit.city, hit.distance].join(' ');
 
   return (
     <article data-objectid={hit.objectID}>
@@ -42,7 +43,7 @@ export function HitCard({ hit }: { hit: Brevet }) {
         </a>
       </header>
 
-      {Boolean(hit.name) && <h2 className="hit-card__title">{hit.name}</h2>}
+      {<h2 className="hit-card__title">{name}</h2>}
 
       <p className="hit-card__location">{location}</p>
 
@@ -65,6 +66,7 @@ export function HitCard({ hit }: { hit: Brevet }) {
         )}
         {hit.map?.map((map: string, index) => {
           const validMapUrl = isValidUrl(map) ? map : undefined;
+          const counter = hit.map!.length !== 1 ? index + 1 : null;
           return validMapUrl ? (
             <a
               key={map}
@@ -73,7 +75,7 @@ export function HitCard({ hit }: { hit: Brevet }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              map {index + 1}
+              map {counter}
             </a>
           ) : null;
         })}
