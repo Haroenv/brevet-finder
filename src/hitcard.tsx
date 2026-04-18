@@ -11,55 +11,73 @@ function isValidUrl(url: unknown): url is string {
   }
 }
 
+function getUrlLabel(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
+
 export function HitCard({ hit }: { hit: Brevet }) {
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
+  const location = [hit.city, hit.department, hit.region, hit.country]
+    .filter(Boolean)
+    .join(', ');
 
   return (
-    <div
-      data-objectid={hit.objectID}
-      style={{ position: 'relative', width: '100%' }}
-    >
-      <a href={`?objectID=${hit.objectID}`} style={{ float: 'right' }}>
-        share
-      </a>
-      <h2>{hit.date}</h2>
-      <p>{hit.distance} km</p>
-      {Boolean(hit.name) && <p>{hit.name}</p>}
-      <p>
-        {[hit.city, hit.department, hit.region, hit.country]
-          .filter(Boolean)
-          .join(', ')}
-      </p>
-      {Boolean(hit.ascent) && <p>{hit.ascent} m</p>}
-      {validSiteUrl && (
-        <a href={validSiteUrl} target="_blank" rel="noopener noreferrer">
-          {hit.site}
+    <article data-objectid={hit.objectID}>
+      <header className="hit-card__header">
+        <div className="hit-card__badges">
+          <span className="hit-card__badge">{hit.date}</span>
+          {Boolean(hit.distance) && (
+            <span className="hit-card__badge hit-card__badge--distance">
+              {hit.distance} km
+            </span>
+          )}
+        </div>
+        <a className="hit-card__share" href={`?objectID=${hit.objectID}`}>
+          share
         </a>
-      )}
-      {hit.mail && <p>{hit.mail}</p>}
-      {hit.club && <p>{hit.club}</p>}
-      {hit.map && hit.map.length > 0 && (
-        <ul>
-          {hit.map.map((map: string) => {
-            const validMapUrl = isValidUrl(map) ? map : undefined;
-            return (
-              <li key={map}>
-                {validMapUrl ? (
-                  <a
-                    href={validMapUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {map}
-                  </a>
-                ) : (
-                  <span>{map}</span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+      </header>
+
+      {Boolean(hit.name) && <h2 className="hit-card__title">{hit.name}</h2>}
+
+      <p className="hit-card__location">{location}</p>
+
+      <div className="hit-card__meta">
+        {Boolean(hit.ascent) && <span>↗ {hit.ascent} m</span>}
+        {Boolean(hit.club) && <span>{hit.club}</span>}
+        {Boolean(hit.mail) && <span>{hit.mail}</span>}
+      </div>
+
+      <div className="hit-card__links">
+        {validSiteUrl && (
+          <a
+            className="hit-card__link"
+            href={validSiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {getUrlLabel(validSiteUrl)}
+          </a>
+        )}
+        {hit.map?.map((map: string, index) => {
+          const validMapUrl = isValidUrl(map) ? map : undefined;
+          return validMapUrl ? (
+            <a
+              key={map}
+              className="hit-card__link hit-card__link--muted"
+              href={validMapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              map {index + 1}
+            </a>
+          ) : null;
+        })}
+      </div>
+    </article>
   );
 }
