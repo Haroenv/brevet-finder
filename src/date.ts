@@ -80,20 +80,24 @@ export function dateToRatio(
 const thisYear = new Date().getFullYear();
 /**
  * Transform from 01/Jan/2024 to 20240101
+ * Returns current date if parsing fails
  */
-export function weirdDateToNum(date: string) {
-  let [year = thisYear, monthStr = 'Jan', day = '01'] = date
-    .replace('//', '/')
-    .split('/')
-    .reverse();
+export function weirdDateToNum(date: string): number {
+  try {
+    let year: string | number = thisYear,
+      monthStr = 'Jan',
+      day = '01';
 
-  // 2025-May-18
-  if (date.includes('-')) {
-    [year = thisYear, monthStr = 'Jan', day = '01'] = date.split('-');
-  }
+    if (date.includes('-')) {
+      [year, monthStr, day] = date.split('-');
+    } else {
+      [year = thisYear, monthStr = 'Jan', day = '01'] = date
+        .replace('//', '/')
+        .split('/')
+        .reverse();
+    }
 
-  const month = (
-    [
+    const monthIndex = [
       'Jan',
       'Feb',
       'Mar',
@@ -106,13 +110,27 @@ export function weirdDateToNum(date: string) {
       'Oct',
       'Nov',
       'Dec',
-    ].indexOf(monthStr) + 1
-  ).toString();
+    ].indexOf(monthStr);
 
-  return parseInt(
-    [year, month.padStart(2, '0'), day.padStart(2, '0')].join(''),
-    10
-  );
+    if (monthIndex === -1) {
+      return dateToNum(new Date());
+    }
+
+    const month = (monthIndex + 1).toString();
+    const result = parseInt(
+      [year, month.padStart(2, '0'), day.padStart(2, '0')].join(''),
+      10
+    );
+
+    // Validate the result is a reasonable date
+    if (isNaN(result) || result < 19000000 || result > 20991231) {
+      return dateToNum(new Date());
+    }
+
+    return result;
+  } catch {
+    return dateToNum(new Date());
+  }
 }
 
 /**
