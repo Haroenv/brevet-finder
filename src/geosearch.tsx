@@ -29,40 +29,40 @@ export function GeoSearch({
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    if (ref.current) {
-      // @ts-ignore
-      ref.current.addEventListener('marker-click', handleMarkerClick);
-      // @ts-ignore
-      ref.current.addEventListener('map-move', handleMapMove);
-    }
+    const element = ref.current;
+    if (!element) return;
 
-    function handleMarkerClick(event: CustomEvent<{ points: Brevet[] }>) {
+    const handleMarkerClick = (event: Event) => {
+      const customEvent = event as CustomEvent<{ points: Brevet[] }>;
       const hits: AlgoliaHit<Brevet>[] =
-        typeof event.detail.points === 'string'
-          ? JSON.parse(event.detail.points)
-          : event.detail.points;
+        typeof customEvent.detail.points === 'string'
+          ? JSON.parse(customEvent.detail.points)
+          : customEvent.detail.points;
 
       sendEvent('click', hits, 'Hit clicked (geo)', {
         positions: undefined,
       });
 
       onMarkerClick(hits);
-    }
-    function handleMapMove(event: CustomEvent<{ bounds: LngLatBounds }>) {
+    };
+
+    const handleMapMove = (event: Event) => {
       if (!refineOnMapMove) return;
-      const bounds = event.detail.bounds;
+      const customEvent = event as CustomEvent<{ bounds: LngLatBounds }>;
+      const bounds = customEvent.detail.bounds;
       if (bounds) {
         refine({ northEast: bounds._ne, southWest: bounds._sw });
       }
-    }
+    };
+
+    element.addEventListener('marker-click', handleMarkerClick);
+    element.addEventListener('map-move', handleMapMove);
 
     return () => {
-      // @ts-ignore
-      ref.current?.removeEventListener('marker-click', handleMarkerClick);
-      // @ts-ignore
-      ref.current?.removeEventListener('map-move', handleMapMove);
+      element.removeEventListener('marker-click', handleMarkerClick);
+      element.removeEventListener('map-move', handleMapMove);
     };
-  }, []);
+  }, [refineOnMapMove, refine, sendEvent, onMarkerClick]);
 
   return (
     <mapbox-map
