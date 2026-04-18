@@ -39,13 +39,17 @@ export function DatePicker({ attribute }: { attribute: string }) {
   };
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{ display: 'flex', width: '100%', gap: '.5em' }}>
       <fieldset
         style={{
+          flex: '1 1 0',
+          minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
           gap: '.25em',
-          border: '1px solid #d6d6e7',
+          margin: 0,
+          border:
+            '1px solid rgba(var(--ais-border-color-rgb), var(--ais-border-color-alpha, 1))',
           boxShadow: ' 0 1px 0 0 rgba(35, 38, 59, 0.05)',
         }}
       >
@@ -53,6 +57,7 @@ export function DatePicker({ attribute }: { attribute: string }) {
         <input
           className="input"
           type="date"
+          style={{ minWidth: 0, width: '100%' }}
           value={numToDateString(values.min)}
           onChange={(event) =>
             refine([dateStringToNum(event.target.value), values.max])
@@ -62,6 +67,7 @@ export function DatePicker({ attribute }: { attribute: string }) {
         />
         <input
           type="range"
+          style={{ minWidth: 0, width: '100%' }}
           value={dateToRatio(values.min, rangeForMin)}
           min={0}
           max={1}
@@ -85,10 +91,14 @@ export function DatePicker({ attribute }: { attribute: string }) {
       </fieldset>
       <fieldset
         style={{
+          flex: '1 1 0',
+          minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
           gap: '.25em',
-          border: '1px solid #d6d6e7',
+          margin: 0,
+          border:
+            '1px solid rgba(var(--ais-border-color-rgb), var(--ais-border-color-alpha, 1))',
           boxShadow: ' 0 1px 0 0 rgba(35, 38, 59, 0.05)',
         }}
       >
@@ -96,6 +106,7 @@ export function DatePicker({ attribute }: { attribute: string }) {
         <input
           type="date"
           className="input"
+          style={{ minWidth: 0, width: '100%' }}
           value={numToDateString(values.max)}
           onChange={(event) =>
             refine([values.min, dateStringToNum(event.target.value)])
@@ -105,6 +116,7 @@ export function DatePicker({ attribute }: { attribute: string }) {
         />
         <input
           type="range"
+          style={{ minWidth: 0, width: '100%' }}
           value={dateToRatio(values.max, rangeForMax)}
           min={0}
           max={1}
