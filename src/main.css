@@ -131,14 +131,13 @@ body {
   margin-top: 0.65rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.75rem;
   font-size: 0.85rem;
+  color: rgba(var(--ais-muted-color-rgb), var(--ais-muted-color-alpha, 1));
 }
 
 .hit-card__meta span {
-  padding: 0.2rem 0.45rem;
-  border-radius: 6px;
-  background-color: rgba(var(--ais-border-color-rgb), 0.15);
+  display: inline-block;
 }
 
 .hit-card__links {
