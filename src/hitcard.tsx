@@ -65,15 +65,35 @@ const df = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
 });
 
+function intersperse<T, TS>(parts: T[], separator: TS): (T | TS)[] {
+  return parts.flatMap((part, index) =>
+    index === parts.length - 1 ? [part] : [part, separator]
+  );
+}
+
 export function HitCard({ hit }: { hit: Hit<Brevet> }) {
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
-  const location = [hit.city, hit.department, hit.region, hit.country]
-    .filter(Boolean)
-    .join(', ');
+  const location = intersperse(
+    ['city', 'department', 'region', 'country']
+      .filter(
+        (key): key is keyof Hit<Brevet> =>
+          key in hit && Boolean((hit as any)[key])
+      )
+      .map((key) => <Highlight attribute={key} hit={hit} />),
+    ', '
+  );
   const name = hit.name ? (
     <Highlight attribute="name" hit={hit} />
   ) : (
-    [hit.city, hit.distance].join(' ')
+    intersperse(
+      ['city', 'distance']
+        .filter(
+          (key): key is keyof Hit<Brevet> =>
+            key in hit && Boolean((hit as any)[key])
+        )
+        .map((key) => <Highlight attribute={key} hit={hit} />),
+      ' '
+    )
   );
   const distanceColor = getDistanceColor(hit.distance);
   const relativeDate = getRelativeDate(hit.dateNumber);
@@ -114,7 +134,11 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
         <p className="hit-card__location">{location}</p>
 
         <div className="hit-card__organizer">
-          {hit.club && <span className="hit-card__club">{hit.club}</span>}
+          {hit.club && (
+            <span className="hit-card__club">
+              <Highlight attribute="club" hit={hit} />
+            </span>
+          )}
         </div>
 
         <div className="hit-card__meta">
