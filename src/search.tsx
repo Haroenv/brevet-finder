@@ -100,10 +100,13 @@ export function SearchApp({
   searchClient,
   insights,
 }: Pick<InstantSearchOptions, 'searchClient' | 'insights'>) {
-  const small = useMediaQuery('(max-width: 800px)');
+  const size = useMediaQuery('(max-width: 800px)') ? 'small' : 'large';
+  const theme = useMediaQuery('(prefers-color-scheme: dark)')
+    ? 'dark'
+    : 'light';
 
   return (
-    <SizeContext.Provider value={small}>
+    <MediaContext.Provider value={{ size, theme }}>
       <InstantSearch
         searchClient={searchClient}
         indexName="brevets"
@@ -114,16 +117,18 @@ export function SearchApp({
           preserveSharedStateOnUnmount: true,
         }}
       >
-        <Configure hitsPerPage={small ? 10 : 18} />
+        <Configure hitsPerPage={isSmallSize(size) ? 10 : 18} />
         <div>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: small ? '1fr' : 'minmax(330px, 1fr) 4fr',
+              gridTemplateColumns: isSmallSize(size)
+                ? '1fr'
+                : 'minmax(330px, 1fr) 4fr',
               gap: '1em',
             }}
           >
-            <div hidden={small}>
+            <div hidden={isSmallSize(size)}>
               <Sidebar />
             </div>
             <Main />
@@ -131,7 +136,7 @@ export function SearchApp({
           <Footer />
         </div>
       </InstantSearch>
-    </SizeContext.Provider>
+    </MediaContext.Provider>
   );
 }
 
@@ -201,14 +206,14 @@ function Sidebar({ logo = true }: { logo?: boolean }) {
 }
 
 function Main() {
-  const small = useContext(SizeContext);
+  const { size, theme } = useContext(MediaContext);
   const [showRefinements, setShowRefinements] = useState(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
       <SearchBox />
       <div>
-        {small ? (
+        {isSmallSize(size) ? (
           <div style={{ display: 'flex', gap: '.25em' }}>
             <button
               type="button"
@@ -225,7 +230,7 @@ function Main() {
           <div
             style={{
               display: 'flex',
-              flexDirection: small ? 'column' : 'row',
+              flexDirection: isSmallSize(size) ? 'column' : 'row',
               flexWrap: 'wrap',
               gap: '1em',
               alignItems: 'center',
@@ -267,14 +272,14 @@ function Main() {
             <div
               style={{
                 display: 'flex',
-                flexDirection: small ? 'column' : 'row',
+                flexDirection: isSmallSize(size) ? 'column' : 'row',
                 alignItems: 'center',
                 gap: '.5em',
               }}
             >
               <ViewSwitcher />
               <Stats />
-              <PoweredBy style={{ translate: '0 1.5px' }} />
+              <PoweredBy theme={theme} style={{ translate: '0 1.5px' }} />
             </div>
           </div>
         )}
@@ -331,7 +336,14 @@ function Main() {
   );
 }
 
-const SizeContext = createContext(false);
+function isSmallSize(size: 'small' | 'large') {
+  return size === 'small';
+}
+
+const MediaContext = createContext({
+  size: 'small' as 'small' | 'large',
+  theme: 'light' as 'light' | 'dark',
+});
 
 function PaginationWrapper({ children }: { children: React.ReactNode }) {
   const { canRefine } = usePagination();
@@ -390,7 +402,7 @@ type View = 'hits' | 'geo';
 
 function Results() {
   const { view } = useView<View>({ defaultView: 'hits' });
-  const small = useContext(SizeContext);
+  const { size } = useContext(MediaContext);
 
   return (
     <>
@@ -400,10 +412,10 @@ function Results() {
           <PaginationWrapper>
             <Pagination
               style={{ alignSelf: 'center' }}
-              padding={small ? 0 : 2}
+              padding={isSmallSize(size) ? 0 : 2}
             />
           </PaginationWrapper>
-          {small && (
+          {isSmallSize(size) && (
             <div style={{ margin: '0 auto' }}>
               <PoweredBy />
             </div>
