@@ -27,7 +27,7 @@ import { useMediaQuery } from './use-media-query';
 import { Footer, Logo } from './shared';
 import { DatePicker } from './datepicker';
 import { GeoSearch } from './geosearch';
-import { HitCard } from './hitcard';
+import { HitCard, getDistanceColor } from './hitcard';
 
 type UiState = InstantSearchUiState & {
   [indexId: string]: Partial<ViewIndexUiState<View>>;
@@ -153,18 +153,26 @@ function Sidebar({ logo = true }: { logo?: boolean }) {
             transformItems={(items) =>
               items
                 .toSorted((a, b) => parseInt(a.value) - parseInt(b.value))
-                .map((item) => ({
-                  ...item,
-                  label: item.label + ' km',
-                }))
+                .map((item) => {
+                  const distanceColor = getDistanceColor(parseInt(item.value));
+                  return {
+                    ...item,
+                    label: (
+                      <div
+                        className="hit-card__badge hit-card__badge--distance"
+                        style={{
+                          background: distanceColor.bg,
+                          color: distanceColor.text,
+                        }}
+                      >
+                        {item.label} km
+                      </div>
+                    ) as unknown as string,
+                  };
+                })
             }
             searchable
             showMore
-            classNames={{
-              item: 'ais-RefinementList-item distance-item',
-              label: 'ais-RefinementList-label distance-label',
-              labelText: 'ais-RefinementList-label distance-labelText',
-            }}
           />
         </Panel>
       </RefinementListWrapper>

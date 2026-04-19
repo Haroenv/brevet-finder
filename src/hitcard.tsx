@@ -22,22 +22,24 @@ function getUrlLabel(url: string) {
 }
 
 // Official ACP randonneuring medal/distance colours
-const DISTANCE_COLORS: Record<number, { bg: string; text: string }> = {
-  200: { bg: '#2c7be5', text: '#fff' },
-  300: { bg: '#27a744', text: '#fff' },
-  400: { bg: '#e0a020', text: '#fff' },
-  600: { bg: '#dc3545', text: '#fff' },
-  1000: { bg: '#6f1e1e', text: '#fff' },
-  1200: { bg: '#b8960c', text: '#fff' },
-};
+const DISTANCE_COLORS: Map<number, { bg: string; text: string }> = new Map([
+  [0, { bg: '#6c757d', text: '#fff' }],
+  [200, { bg: '#2c7be5', text: '#fff' }],
+  [300, { bg: '#27a744', text: '#fff' }],
+  [400, { bg: '#e0a020', text: '#fff' }],
+  [600, { bg: '#dc3545', text: '#fff' }],
+  [1000, { bg: '#6f1e1e', text: '#fff' }],
+  [1200, { bg: '#b8960c', text: '#fff' }],
+]);
 
-function getDistanceColor(distance?: number) {
-  const fallback = { bg: '#6c757d', text: '#fff' };
-  if (!distance) return fallback;
-  const standard = Object.keys(DISTANCE_COLORS)
-    .map(Number)
-    .find((d) => Math.abs(d - distance) <= 50);
-  return standard ? DISTANCE_COLORS[standard] : fallback;
+export function getDistanceColor(distance: number = 0) {
+  let key = 0;
+  for (const threshold of DISTANCE_COLORS.keys()) {
+    if (threshold <= distance) key = threshold;
+    else break;
+  }
+
+  return DISTANCE_COLORS.get(key)!;
 }
 
 function getRelativeDate(dateNumber: number): string {
