@@ -1,3 +1,5 @@
+import { Highlight } from 'react-instantsearch';
+import { Hit } from 'instantsearch.js';
 import { numToDate } from './date';
 import { Brevet } from './types';
 
@@ -63,12 +65,16 @@ const df = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
 });
 
-export function HitCard({ hit }: { hit: Brevet }) {
+export function HitCard({ hit }: { hit: Hit<Brevet> }) {
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
   const location = [hit.city, hit.department, hit.region, hit.country]
     .filter(Boolean)
     .join(', ');
-  const name = hit.name || [hit.city, hit.distance].join(' ');
+  const name = hit.name ? (
+    <Highlight attribute="name" hit={hit} />
+  ) : (
+    [hit.city, hit.distance].join(' ')
+  );
   const distanceColor = getDistanceColor(hit.distance);
   const relativeDate = getRelativeDate(hit.dateNumber);
 

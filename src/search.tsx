@@ -17,6 +17,7 @@ import { history } from 'instantsearch.js/es/lib/routers';
 import type {
   InstantSearchOptions,
   UiState as InstantSearchUiState,
+  Hit,
 } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';
@@ -463,7 +464,7 @@ function DisplayGeo() {
         <ul className="ais-Hits-list">
           {selected.map((hit) => (
             <li key={hit.objectID} className="ais-Hits-item">
-              <HitCard hit={hit} />
+              <HitCard hit={hit as Hit<Brevet>} />
             </li>
           ))}
         </ul>
