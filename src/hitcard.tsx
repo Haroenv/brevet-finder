@@ -1,3 +1,4 @@
+import { numToDate } from './date';
 import { Brevet } from './types';
 
 // Validate and sanitize URLs to prevent XSS via javascript: or data: protocols
@@ -20,65 +21,123 @@ function getUrlLabel(url: string) {
   }
 }
 
+// Official ACP randonneuring medal/distance colours
+const DISTANCE_COLORS: Record<number, { bg: string; text: string }> = {
+  200: { bg: '#2c7be5', text: '#fff' },
+  300: { bg: '#27a744', text: '#fff' },
+  400: { bg: '#e0a020', text: '#fff' },
+  600: { bg: '#dc3545', text: '#fff' },
+  1000: { bg: '#6f1e1e', text: '#fff' },
+  1200: { bg: '#b8960c', text: '#fff' },
+};
+
+function getDistanceColor(distance?: number) {
+  const fallback = { bg: '#6c757d', text: '#fff' };
+  if (!distance) return fallback;
+  const standard = Object.keys(DISTANCE_COLORS)
+    .map(Number)
+    .find((d) => Math.abs(d - distance) <= 50);
+  return standard ? DISTANCE_COLORS[standard] : fallback;
+}
+
+function getRelativeDate(dateNumber: number): string {
+  const date = numToDate(dateNumber);
+  const now = new Date();
+  const diffDays = Math.round((date.getTime() - now.getTime()) / 86_400_000);
+  if (diffDays < 0) return 'Past';
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+  if (diffDays <= 6) return `In ${diffDays} days`;
+  if (diffDays <= 13) return 'Next week';
+  if (diffDays <= 30) return `In ${Math.round(diffDays / 7)} weeks`;
+  if (diffDays <= 60) return 'Next month';
+  return '';
+}
+
+const df = new Intl.DateTimeFormat(undefined, {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
 export function HitCard({ hit }: { hit: Brevet }) {
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
   const location = [hit.city, hit.department, hit.region, hit.country]
     .filter(Boolean)
     .join(', ');
   const name = hit.name || [hit.city, hit.distance].join(' ');
+  const distanceColor = getDistanceColor(hit.distance);
+  const relativeDate = getRelativeDate(hit.dateNumber);
 
   return (
-    <article data-objectid={hit.objectID}>
-      <header className="hit-card__header">
-        <div className="hit-card__badges">
-          <span className="hit-card__badge">{hit.date}</span>
-          {Boolean(hit.distance) && (
-            <span className="hit-card__badge hit-card__badge--distance">
-              {hit.distance} km
+    <article data-objectid={hit.objectID} className="hit-card">
+      <div className="hit-card__body">
+        <header className="hit-card__header">
+          <div className="hit-card__badges">
+            <span
+              className="hit-card__badge"
+              title={df.format(numToDate(hit.dateNumber))}
+            >
+              {hit.date}
+              {relativeDate && (
+                <em className="hit-card__relative-date">{relativeDate}</em>
+              )}
             </span>
-          )}
-        </div>
-        <a className="hit-card__share" href={`?objectID=${hit.objectID}`}>
-          share
-        </a>
-      </header>
-
-      {<h2 className="hit-card__title">{name}</h2>}
-
-      <p className="hit-card__location">{location}</p>
-
-      <div className="hit-card__meta">
-        {Boolean(hit.ascent) && <span>↗ {hit.ascent} m</span>}
-        {Boolean(hit.club) && <span>{hit.club}</span>}
-        {Boolean(hit.mail) && <span>{hit.mail}</span>}
-      </div>
-
-      <div className="hit-card__links">
-        {validSiteUrl && (
-          <a
-            className="hit-card__link"
-            href={validSiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {getUrlLabel(validSiteUrl)}
+            {Boolean(hit.distance) && (
+              <span
+                className="hit-card__badge hit-card__badge--distance"
+                style={{
+                  background: distanceColor.bg,
+                  color: distanceColor.text,
+                }}
+              >
+                {hit.distance} km
+              </span>
+            )}
+          </div>
+          <a className="hit-card__share" href={`?objectID=${hit.objectID}`}>
+            share
           </a>
-        )}
-        {hit.map?.map((map: string, index) => {
-          const validMapUrl = isValidUrl(map) ? map : undefined;
-          const counter = hit.map!.length !== 1 ? index + 1 : null;
-          return validMapUrl ? (
+        </header>
+
+        <h2 className="hit-card__title">{name}</h2>
+
+        <p className="hit-card__location">{location}</p>
+
+        <div className="hit-card__meta">
+          {Boolean(hit.ascent) && <span>↗ {hit.ascent} m</span>}
+          {Boolean(hit.club) && <span>{hit.club}</span>}
+          {Boolean(hit.mail) && <span>{hit.mail}</span>}
+        </div>
+
+        <div className="hit-card__links">
+          {validSiteUrl && (
             <a
-              key={map}
-              className="hit-card__link hit-card__link--muted"
-              href={validMapUrl}
+              className="hit-card__link"
+              href={validSiteUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
-              map {counter}
+              {getUrlLabel(validSiteUrl)}
             </a>
-          ) : null;
-        })}
+          )}
+          {hit.map?.map((map: string, index) => {
+            const validMapUrl = isValidUrl(map) ? map : undefined;
+            const counter = hit.map!.length !== 1 ? index + 1 : null;
+            return validMapUrl ? (
+              <a
+                key={map}
+                className="hit-card__link hit-card__link--muted"
+                href={validMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                map {counter}
+              </a>
+            ) : null;
+          })}
+        </div>
       </div>
     </article>
   );

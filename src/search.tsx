@@ -160,6 +160,11 @@ function Sidebar({ logo = true }: { logo?: boolean }) {
             }
             searchable
             showMore
+            classNames={{
+              item: 'ais-RefinementList-item distance-item',
+              label: 'ais-RefinementList-label distance-label',
+              labelText: 'ais-RefinementList-label distance-labelText',
+            }}
           />
         </Panel>
       </RefinementListWrapper>

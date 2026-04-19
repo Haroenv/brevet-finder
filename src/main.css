@@ -38,11 +38,31 @@ body {
   overflow: hidden;
   border: 1px solid
     rgba(var(--ais-border-color-rgb), var(--ais-border-color-alpha, 1));
-  padding: var(--ais-spacing, 1rem);
+  padding: 0;
   background-color: rgba(
     var(--ais-background-color-rgb),
     var(--ais-background-color-alpha, 1)
   );
+}
+
+.hit-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.hit-card__body {
+  padding: var(--ais-spacing, 1rem);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hit-card__relative-date {
+  font-style: normal;
+  margin-left: 0.4em;
+  opacity: 0.75;
+  font-weight: 400;
 }
 
 .hit-card__header {
@@ -247,4 +267,42 @@ fieldset {
 legend {
   color: rgba(var(--ais-text-color-rgb), var(--ais-text-color-alpha, 1));
   padding: 0 0.25em;
+}
+
+/* Distance refinement list with color circles */
+.distance-labelText::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.5em;
+  vertical-align: -1px;
+  flex-shrink: 0;
+  background: #6c757d;
+}
+
+/* ACP distance colors */
+.distance-item:has(input[value='200']) .distance-labelText::before {
+  background: #2c7be5;
+}
+
+.distance-item:has(input[value='300']) .distance-labelText::before {
+  background: #27a744;
+}
+
+.distance-item:has(input[value='400']) .distance-labelText::before {
+  background: #e0a020;
+}
+
+.distance-item:has(input[value='600']) .distance-labelText::before {
+  background: #dc3545;
+}
+
+.distance-item:has(input[value='1000']) .distance-labelText::before {
+  background: #6f1e1e;
+}
+
+.distance-item:has(input[value='1200']) .distance-labelText::before {
+  background: #b8960c;
 }
