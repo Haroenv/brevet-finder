@@ -301,7 +301,10 @@ function Main() {
               marginBottom: '0.5em',
             }}
           >
-            <ClearRefinements translations={{ resetButtonText: 'reset' }} />
+            <ClearRefinements
+              translations={{ resetButtonText: 'reset' }}
+              classNames={{ button: 'btn', disabledButton: 'btn' }}
+            />
             <button
               type="button"
               className="btn"
