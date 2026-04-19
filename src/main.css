@@ -29,7 +29,7 @@ body {
 }
 
 :root {
-  --ais-hit-min-width: 300px;
+  --ais-hit-min-width: 300px !important;
 }
 
 .hit-card {
