@@ -105,9 +105,12 @@ export function HitCard({ hit }: { hit: Brevet }) {
 
         <p className="hit-card__location">{location}</p>
 
+        <div className="hit-card__organizer">
+          {hit.club && <span className="hit-card__club">{hit.club}</span>}
+        </div>
+
         <div className="hit-card__meta">
           {Boolean(hit.ascent) && <span>↗ {hit.ascent} m</span>}
-          {Boolean(hit.club) && <span>{hit.club}</span>}
           {Boolean(hit.mail) && <span>{hit.mail}</span>}
         </div>
 

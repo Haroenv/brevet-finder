@@ -114,6 +114,19 @@ body {
   font-size: 0.92rem;
 }
 
+.hit-card__organizer {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(var(--ais-border-color-rgb), 0.2);
+  border-bottom: 1px solid rgba(var(--ais-border-color-rgb), 0.2);
+}
+
+.hit-card__club {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: rgba(var(--ais-text-color-rgb), var(--ais-text-color-alpha, 1));
+}
+
 .hit-card__meta {
   margin-top: 0.65rem;
   display: flex;
