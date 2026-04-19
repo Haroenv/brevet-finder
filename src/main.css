@@ -32,23 +32,6 @@ body {
   --ais-hit-min-width: 300px;
 }
 
-.ais-Hits-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1em;
-}
-
-.ais-Hits-item {
-  overflow: hidden;
-  border: 1px solid
-    rgba(var(--ais-border-color-rgb), var(--ais-border-color-alpha, 1));
-  padding: 0;
-  background-color: rgba(
-    var(--ais-background-color-rgb),
-    var(--ais-background-color-alpha, 1)
-  );
-}
-
 .hit-card {
   display: flex;
   flex-direction: column;
