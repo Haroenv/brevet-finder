@@ -9,6 +9,7 @@ import {
   RefinementList,
   SearchBox,
   Stats,
+  useHits,
   usePagination,
   useRange,
   useRefinementList,
@@ -449,24 +450,40 @@ function ViewSwitcher() {
 }
 
 function DisplayGeo() {
-  const [selected, setSelected] = useState<Brevet[]>([]);
+  const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
+  const { items } = useHits<Brevet>();
 
   return (
     <>
       <Configure hitsPerPage={500} />
       <GeoSearch
-        onMarkerClick={(items) => {
-          setSelected(items.toSorted((a, b) => a.dateNumber - b.dateNumber));
+        onMarkerClick={(objectIDs) => {
+          setSelectedIDs(objectIDs);
         }}
-        selected={selected.map((hit) => hit.objectID)}
+        selected={selectedIDs}
       />
       <div className="ais-Hits">
         <ul className="ais-Hits-list">
-          {selected.map((hit) => (
-            <li key={hit.objectID} className="ais-Hits-item">
-              <HitCard hit={hit as Hit<Brevet>} />
-            </li>
-          ))}
+          {items
+            .toSorted((a, b) => {
+              const aSelected = selectedIDs.includes(a.objectID);
+              const bSelected = selectedIDs.includes(b.objectID);
+              if (aSelected && !bSelected) return -1;
+              if (!aSelected && bSelected) return 1;
+              return a.dateNumber - b.dateNumber;
+            })
+            .map((hit) => (
+              <li
+                key={hit.objectID}
+                className={`ais-Hits-item${
+                  selectedIDs.length > 0 && selectedIDs.includes(hit.objectID)
+                    ? ' ais-Hits-item--selected'
+                    : ''
+                }`}
+              >
+                <HitCard hit={hit} />
+              </li>
+            ))}
         </ul>
       </div>
     </>

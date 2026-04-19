@@ -32,6 +32,16 @@ body {
   --ais-hit-min-width: 300px !important;
 }
 
+.ais-Hits-item--selected {
+  border: 1px solid
+    rgba(var(--ais-border-color-rgb), var(--ais-border-color-alpha, 1));
+  border-color: rgba(var(--ais-primary-color-rgb), 1);
+  box-shadow:
+    rgba(var(--ais-primary-color-rgb), 0.3) 0 0 0 2px,
+    inset rgba(var(--ais-primary-color-rgb), 0.3) 0 0 0 2px;
+  outline: currentColor none medium;
+}
+
 .hit-card {
   display: flex;
   flex-direction: column;

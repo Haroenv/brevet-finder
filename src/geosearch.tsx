@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Brevet } from './types';
 import { useGeoSearch } from 'react-instantsearch';
-import { type Hit as AlgoliaHit } from 'instantsearch.js';
 import { LngLatBounds } from 'mapbox-gl';
 
 const { VITE_MAPBOX = '' } = import.meta.env;
@@ -17,7 +16,7 @@ export function GeoSearch({
   center = { lat: 0, lng: 0 },
   zoom = 1,
 }: {
-  onMarkerClick: (item: Brevet[]) => void;
+  onMarkerClick: (objectIDs: string[]) => void;
   selected?: string[];
   interactive?: boolean;
   refineOnMapMove?: boolean;
@@ -33,17 +32,17 @@ export function GeoSearch({
     if (!element) return;
 
     const handleMarkerClick = (event: Event) => {
-      const customEvent = event as CustomEvent<{ points: Brevet[] }>;
-      const hits: AlgoliaHit<Brevet>[] =
+      const customEvent = event as CustomEvent<{
+        points: { objectID: string }[];
+      }>;
+      const rawPoints: { objectID: string }[] =
         typeof customEvent.detail.points === 'string'
           ? JSON.parse(customEvent.detail.points)
           : customEvent.detail.points;
-
-      sendEvent('click', hits, 'Hit clicked (geo)', {
+      sendEvent('click', rawPoints as any, 'Hit clicked (geo)', {
         positions: undefined,
       });
-
-      onMarkerClick(hits);
+      onMarkerClick(rawPoints.map((p) => p.objectID));
     };
 
     const handleMapMove = (event: Event) => {
