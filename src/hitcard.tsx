@@ -65,6 +65,15 @@ const df = new Intl.DateTimeFormat(undefined, {
   year: 'numeric',
 });
 
+function format(dateNumber: number): string {
+  try {
+    const date = numToDate(dateNumber);
+    return df.format(date);
+  } catch {
+    return String(dateNumber);
+  }
+}
+
 function intersperse<T, TS>(parts: T[], separator: TS): (T | TS)[] {
   return parts.flatMap((part, index) =>
     index === parts.length - 1 ? [part] : [part, separator]
@@ -79,7 +88,7 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
         (key): key is keyof Hit<Brevet> =>
           key in hit && Boolean((hit as any)[key])
       )
-      .map((key) => <Highlight attribute={key} hit={hit} />),
+      .map((key) => <Highlight key={key} attribute={key} hit={hit} />),
     ', '
   );
   const name = hit.name ? (
@@ -91,7 +100,7 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
           (key): key is keyof Hit<Brevet> =>
             key in hit && Boolean((hit as any)[key])
         )
-        .map((key) => <Highlight attribute={key} hit={hit} />),
+        .map((key) => <Highlight key={key} attribute={key} hit={hit} />),
       ' '
     )
   );
@@ -103,10 +112,7 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
       <div className="hit-card__body">
         <header className="hit-card__header">
           <div className="hit-card__badges">
-            <span
-              className="hit-card__badge"
-              title={df.format(numToDate(hit.dateNumber))}
-            >
+            <span className="hit-card__badge" title={format(hit.dateNumber)}>
               {hit.date}
               {relativeDate && (
                 <em className="hit-card__relative-date">{relativeDate}</em>
