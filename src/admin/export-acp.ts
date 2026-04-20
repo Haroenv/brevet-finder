@@ -92,7 +92,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       map: brevet.RoadMap.split(/[; ]/)
         .map((map) => map.trim())
         .filter(Boolean),
-      site: brevet.SiteWeb,
+      site: brevet.SiteWeb?.trim(),
       mail: brevet.MailContact,
       club: brevet.NomClub,
       ascent: brevet.Denivele,
