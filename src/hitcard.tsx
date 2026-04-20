@@ -14,6 +14,10 @@ function isValidUrl(url: unknown): url is string {
   }
 }
 
+function isValidEmail(mail: string | undefined) {
+  return Boolean(mail && mail.includes('@') && mail.includes('.'));
+}
+
 function getUrlLabel(url: string) {
   try {
     const parsed = new URL(url);
@@ -21,6 +25,20 @@ function getUrlLabel(url: string) {
   } catch {
     return url;
   }
+}
+
+function getFallbackSearchUrl(hit: Hit<Brevet>) {
+  const query = [
+    hit.club,
+    hit.city,
+    hit.country,
+    hit.distance ? `${hit.distance}km` : '',
+    hit.date,
+    'BRM',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
 }
 
 // Official ACP randonneuring medal/distance colours
@@ -82,6 +100,7 @@ function intersperse<T, TS>(parts: T[], separator: TS): (T | TS)[] {
 
 export function HitCard({ hit }: { hit: Hit<Brevet> }) {
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
+  const validMaps = (hit.map || []).filter(isValidUrl);
   const location = intersperse(
     ['city', 'department', 'region', 'country']
       .filter(
@@ -149,7 +168,15 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
 
         <div className="hit-card__meta">
           {Boolean(hit.ascent) && <span>↗ {hit.ascent} m</span>}
-          {Boolean(hit.mail) && <span>{hit.mail}</span>}
+          {Boolean(hit.mail) && (
+            <span>
+              <a
+                href={isValidEmail(hit.mail) ? `mailto:${hit.mail}` : undefined}
+              >
+                {hit.mail}
+              </a>
+            </span>
+          )}
         </div>
 
         <div className="hit-card__links">
@@ -163,20 +190,19 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
               {getUrlLabel(validSiteUrl)}
             </a>
           )}
-          {hit.map?.map((map: string, index) => {
-            const validMapUrl = isValidUrl(map) ? map : undefined;
-            const counter = hit.map!.length !== 1 ? index + 1 : null;
-            return validMapUrl ? (
+          {validMaps.map((map, index) => {
+            const counter = validMaps.length !== 1 ? index + 1 : null;
+            return (
               <a
                 key={map}
                 className="hit-card__link hit-card__link--muted"
-                href={validMapUrl}
+                href={map}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 map {counter}
               </a>
-            ) : null;
+            );
           })}
         </div>
       </div>
