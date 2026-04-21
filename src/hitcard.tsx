@@ -104,7 +104,13 @@ function intersperse<T, TS>(parts: T[], separator: TS): (T | TS)[] {
   );
 }
 
-export function HitCard({ hit }: { hit: Hit<Brevet> }) {
+export function HitCard({
+  hit,
+  link = true,
+}: {
+  hit: Hit<Brevet>;
+  link?: boolean;
+}) {
   const { getPlanStatus, setPlanStatus } = usePlans();
   const planStatus = getPlanStatus(hit.objectID);
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
@@ -162,7 +168,9 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
           </a>
         </header>
 
-        <h2 className="hit-card__title">{name}</h2>
+        <h2 className="hit-card__title">
+          {link ? <a href={`?objectID=${hit.objectID}`}>{name}</a> : name}
+        </h2>
 
         <p className="hit-card__location">{location}</p>
 
