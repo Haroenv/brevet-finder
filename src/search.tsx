@@ -9,7 +9,9 @@ import {
   RefinementList,
   SearchBox,
   Stats,
+  useConfigure,
   useHits,
+  useInstantSearch,
   usePagination,
   useRange,
   useRefinementList,
@@ -22,7 +24,7 @@ import type {
 } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useView, ViewIndexUiState } from './connect-view';
 import { dateToNum, numToDateString } from './date';
 import { useMediaQuery } from './use-media-query';
@@ -30,6 +32,13 @@ import { Footer, Logo } from './shared';
 import { DatePicker } from './datepicker';
 import { GeoSearch } from './geosearch';
 import { HitCard, getDistanceColor } from './hitcard';
+import {
+  buildObjectIDFilters,
+  PlanFilter as TPlanFilter,
+  PlanProvider,
+  PLAN_STATUS_LABELS,
+  usePlans,
+} from './plans';
 
 type UiState = InstantSearchUiState & {
   [indexId: string]: Partial<ViewIndexUiState<View>>;
@@ -109,35 +118,38 @@ export function SearchApp({
 
   return (
     <MediaContext.Provider value={{ size, theme }}>
-      <InstantSearch
-        searchClient={searchClient}
-        indexName="brevets"
-        routing={routing}
-        insights={insights}
-        future={{
-          persistHierarchicalRootCount: true,
-          preserveSharedStateOnUnmount: true,
-        }}
-      >
-        <Configure hitsPerPage={isSmallSize(size) ? 10 : 18} />
-        <div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isSmallSize(size)
-                ? '1fr'
-                : 'minmax(330px, 1fr) 4fr',
-              gap: '1em',
-            }}
-          >
-            <div hidden={isSmallSize(size)}>
-              <Sidebar />
+      <PlanProvider>
+        <InstantSearch
+          searchClient={searchClient}
+          indexName="brevets"
+          routing={routing}
+          insights={insights}
+          future={{
+            persistHierarchicalRootCount: true,
+            preserveSharedStateOnUnmount: true,
+          }}
+        >
+          <Configure hitsPerPage={isSmallSize(size) ? 10 : 18} />
+          <div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isSmallSize(size)
+                  ? '1fr'
+                  : 'minmax(330px, 1fr) 4fr',
+                gap: '1em',
+              }}
+            >
+              <div hidden={isSmallSize(size)}>
+                <Sidebar />
+              </div>
+              <Main />
             </div>
-            <Main />
+            <Footer />
           </div>
-          <Footer />
-        </div>
-      </InstantSearch>
+          <UndoToast />
+        </InstantSearch>
+      </PlanProvider>
     </MediaContext.Provider>
   );
 }
@@ -146,6 +158,11 @@ function Sidebar({ logo = true }: { logo?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
       {logo && <Logo />}
+      <PlanFilterWrapper>
+        <Panel header="my plans">
+          <PlanFilter />
+        </Panel>
+      </PlanFilterWrapper>
       <RangeWrapper attribute="dateNumber">
         <Panel header="date">
           <DatePicker attribute="dateNumber" />
@@ -334,6 +351,102 @@ function Main() {
           <Sidebar logo={false} />
         </div>
       )}
+    </div>
+  );
+}
+
+function PlanFilterWrapper({ children }: { children: React.ReactNode }) {
+  const { results } = useInstantSearch();
+  const { plans } = usePlans();
+
+  return (
+    <div
+      hidden={
+        !results || results.__isArtificial || Object.keys(plans).length === 0
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
+function PlanFilter() {
+  const { objectIDsForFilter, countByFilter, plans } = usePlans();
+  const [selected, setSelected] = useState<TPlanFilter>('all');
+  useConfigure({
+    filters: buildObjectIDFilters(objectIDsForFilter(selected, 1000)),
+  });
+
+  useEffect(() => {
+    if (countByFilter(selected) === 0 && selected !== 'all') {
+      setSelected('all');
+    }
+  }, [selected, countByFilter, setSelected, plans]);
+
+  const options: { value: TPlanFilter; label: string }[] = [
+    { value: 'all', label: 'all' },
+    ...Object.entries(PLAN_STATUS_LABELS).map(([value, label]) => ({
+      value: value as TPlanFilter,
+      label,
+    })),
+  ];
+
+  return (
+    <>
+      <div className="ais-RefinementList">
+        <ul className="ais-RefinementList-list">
+          {options.map((option) => {
+            const isRefined = selected === option.value;
+            const count =
+              option.value === 'all' ? null : countByFilter(option.value);
+
+            return (
+              <li
+                key={option.value}
+                className={`ais-RefinementList-item ${isRefined ? 'ais-RefinementList-item--selected' : ''} ${count === 0 ? 'ais-RefinementList-item--disabled' : ''}`}
+              >
+                <label
+                  className={`ais-RefinementList-label  ${count === 0 ? 'ais-RefinementList-label--disabled' : ''}`}
+                >
+                  <input
+                    className="ais-RefinementList-checkbox"
+                    type="checkbox"
+                    name="plan-filter"
+                    checked={isRefined}
+                    disabled={count === 0}
+                    onChange={() => {
+                      setSelected((current) =>
+                        current === option.value ? 'all' : option.value
+                      );
+                    }}
+                  />
+                  <span className="ais-RefinementList-labelText">
+                    {option.label}
+                  </span>
+                  {count !== null && (
+                    <span className="ais-RefinementList-count">{count}</span>
+                  )}
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </>
+  );
+}
+
+function UndoToast() {
+  const { lastRemoved, undo } = usePlans();
+
+  if (!lastRemoved) return null;
+
+  return (
+    <div className="undo-toast">
+      <span className="undo-toast__message">removed from your plans</span>
+      <button type="button" className="undo-toast__button" onClick={undo}>
+        undo
+      </button>
     </div>
   );
 }

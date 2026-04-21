@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { Footer, Logo } from './shared';
 import { GeoSearch } from './geosearch';
 import { HitCard } from './hitcard';
+import { PlanProvider } from './plans';
 
 const objectID = new URLSearchParams(location.search).get('objectID');
 
@@ -14,27 +15,29 @@ export function DetailsApp({
   insights,
 }: Pick<InstantSearchOptions, 'searchClient' | 'insights'>) {
   return (
-    <InstantSearch
-      searchClient={searchClient}
-      indexName="brevets"
-      insights={insights}
-      future={{
-        persistHierarchicalRootCount: true,
-        preserveSharedStateOnUnmount: true,
-      }}
-    >
-      <WindowTitle />
-      <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
-        <Configure hitsPerPage={1} filters={`objectID:"${objectID}"`} />
-        <Logo resets={false} />
-        <p>
-          Check out this brevet! To find other brevets, go to{' '}
-          <a href=".">search</a>.
-        </p>
-        <DisplayDetails />
-        <Footer />
-      </div>
-    </InstantSearch>
+    <PlanProvider>
+      <InstantSearch
+        searchClient={searchClient}
+        indexName="brevets"
+        insights={insights}
+        future={{
+          persistHierarchicalRootCount: true,
+          preserveSharedStateOnUnmount: true,
+        }}
+      >
+        <WindowTitle />
+        <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
+          <Configure hitsPerPage={1} filters={`objectID:"${objectID}"`} />
+          <Logo resets={false} />
+          <p>
+            Check out this brevet! To find other brevets, go to{' '}
+            <a href=".">search</a>.
+          </p>
+          <DisplayDetails />
+          <Footer />
+        </div>
+      </InstantSearch>
+    </PlanProvider>
   );
 }
 

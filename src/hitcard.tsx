@@ -2,6 +2,12 @@ import { Highlight } from 'react-instantsearch';
 import { Hit } from 'instantsearch.js';
 import { numToDate } from './date';
 import { Brevet } from './types';
+import {
+  PLAN_STATUS_ICONS,
+  PLAN_STATUS_LABELS,
+  usePlans,
+  type PlanStatus,
+} from './plans';
 
 // Validate and sanitize URLs to prevent XSS via javascript: or data: protocols
 function isValidUrl(url: unknown): url is string {
@@ -99,6 +105,8 @@ function intersperse<T, TS>(parts: T[], separator: TS): (T | TS)[] {
 }
 
 export function HitCard({ hit }: { hit: Hit<Brevet> }) {
+  const { getPlanStatus, setPlanStatus } = usePlans();
+  const planStatus = getPlanStatus(hit.objectID);
   const validSiteUrl = isValidUrl(hit.site) ? hit.site : undefined;
   const validMaps = (hit.map || []).filter(isValidUrl);
   const location = intersperse(
@@ -164,6 +172,33 @@ export function HitCard({ hit }: { hit: Hit<Brevet> }) {
               <Highlight attribute="club" hit={hit} />
             </span>
           )}
+        </div>
+
+        <div className="hit-card__plan">
+          <div className="hit-card__plan-group" role="group" aria-label="plan">
+            {Object.entries(PLAN_STATUS_LABELS).map(([value, label]) => {
+              const status = value as PlanStatus;
+              const isActive = planStatus === status;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={`hit-card__plan-pill${isActive ? ' is-active' : ''}`}
+                  aria-pressed={isActive}
+                  onClick={() => {
+                    setPlanStatus(hit.objectID, isActive ? null : status);
+                  }}
+                >
+                  <span className="hit-card__plan-pill-icon" aria-hidden="true">
+                    {isActive
+                      ? PLAN_STATUS_ICONS[status].active
+                      : PLAN_STATUS_ICONS[status].inactive}
+                  </span>{' '}
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="hit-card__meta">
