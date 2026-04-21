@@ -20,6 +20,8 @@ jobs:
       - name: Install
         run: bun install
       - name: Export content
+        id: export
+        continue-on-error: true
         run: bun run export
         env:
           PLACEKIT: ${{ secrets.PLACEKIT }}
@@ -31,3 +33,6 @@ jobs:
         env:
           ALGOLIA_APP: ${{ secrets.ALGOLIA_APP }}
           ALGOLIA_WRITE: ${{ secrets.ALGOLIA_WRITE }}
+      - name: Fail if export had errors
+        if: steps.export.outcome == 'failure'
+        run: exit 1

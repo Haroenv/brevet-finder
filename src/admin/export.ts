@@ -9,97 +9,104 @@ import * as ireland from './export-ireland';
 import * as italy from './export-italy';
 import * as belgium from './export-belgium';
 import * as netherlands from './export-netherlands';
+import { Brevet } from '../types';
 
-const flags = {
-  acp: true,
-  map: true,
-  lrm: true,
-  usa: true,
-  auk: true,
-  ireland: true,
-  italy: true,
-  belgium: true,
-  netherlands: true,
-  geocode: true,
-  filter: true,
-};
-
-const { ALGOLIA_APP = '', ALGOLIA_WRITE = '' } = process.env;
-if (!ALGOLIA_APP && flags.filter) {
+const { ALGOLIA_APP = '', ALGOLIA_WRITE = '', SKIP_INDEX = "" } = process.env;
+if (!ALGOLIA_APP && !SKIP_INDEX) {
   throw new Error('Missing ALGOLIA_APP env variable');
 }
-if (!ALGOLIA_WRITE && flags.filter) {
+if (!ALGOLIA_WRITE && !SKIP_INDEX) {
   throw new Error('Missing ALGOLIA_WRITE env variable');
 }
 
-const searchClient = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
-const allObjectIds = new Set<string>();
-const existingGeoByObjectId = new Map<string, { lat: number; lng: number }>();
-if (flags.filter) {
-  await searchClient.initIndex('brevets').browseObjects({
+const errors: Array<{ source: string; error: unknown }> = [];
+
+const sources = [
+  { name: 'acp', pkg: acp },
+  { name: 'map', pkg: map },
+  { name: 'lrm', pkg: lrm },
+  { name: 'usa', pkg: usa },
+  { name: 'auk', pkg: auk },
+  { name: 'ireland', pkg: ireland },
+  { name: 'italy', pkg: italy },
+  { name: 'belgium', pkg: belgium },
+  { name: 'netherlands', pkg: netherlands },
+];
+
+async function fetchAllData() {
+  const results = await Promise.all(
+    sources.map(async ({ name, pkg }) => {
+      try {
+        return await pkg.getData();
+      } catch (error) {
+        console.error(`Error fetching data from ${name}:`, error);
+        errors.push({ source: name, error });
+        return [];
+      }
+    })
+  );
+  return results.flat();
+}
+
+async function getExistingData() {
+  const existingObjectIDs = new Set<string>();
+  const existingGeo = new Map<string, { lat: number; lng: number }>();
+
+  if (SKIP_INDEX) {
+    console.warn('SKIP_INDEX is set, skipping fetching existing data from Algolia');
+    return { existingObjectIDs, existingGeo };
+  }
+
+  const client = algoliasearch(ALGOLIA_APP, ALGOLIA_WRITE);
+  await client.initIndex('brevets').browseObjects({
     attributesToRetrieve: ['objectID', '_geoloc'],
     batch: (objects) => {
       objects.forEach((object) => {
-        allObjectIds.add(object.objectID);
-
-        const existingGeoLoc = (
-          object as { _geoloc?: Array<{ lat: number; lng: number }> }
-        )._geoloc?.[0];
-        if (existingGeoLoc?.lat && existingGeoLoc?.lng) {
-          existingGeoByObjectId.set(object.objectID, existingGeoLoc);
+        existingObjectIDs.add(object.objectID);
+        const geoLoc = (object as any)._geoloc?.[0];
+        if (geoLoc?.lat && geoLoc?.lng) {
+          existingGeo.set(object.objectID, geoLoc);
         }
       });
     },
   });
+
+  return { existingObjectIDs, existingGeo };
 }
 
-const data = [
-  ...(flags.acp ? await acp.getData() : []),
-  ...(flags.map ? await map.getData() : []),
-  ...(flags.lrm ? await lrm.getData() : []),
-  ...(flags.usa ? await usa.getData() : []),
-  ...(flags.auk ? await auk.getData() : []),
-  ...(flags.ireland ? await ireland.getData() : []),
-  ...(flags.italy ? await italy.getData() : []),
-  ...(flags.belgium ? await belgium.getData() : []),
-  ...(flags.netherlands ? await netherlands.getData() : []),
+function inheritGeoloc(brevet: Brevet, existingGeo: Map<string, any>) {
+  if (brevet._geoloc?.[0]) return brevet;
+
+  const geoLoc = existingGeo.get(brevet.objectID);
+  return geoLoc ? { ...brevet, _geoloc: [geoLoc] } : brevet;
+}
+
+const data = await fetchAllData();
+const { existingObjectIDs, existingGeo } = await getExistingData();
+
+const newBrevets = data.filter((b) => !existingObjectIDs.has(b.objectID));
+const existingBrevets = data
+  .filter((b) => existingObjectIDs.has(b.objectID))
+  .map((b) => inheritGeoloc(b, existingGeo));
+
+const needsGeocoding = [
+  ...newBrevets,
+  ...existingBrevets.filter((b) => !b._geoloc?.[0]),
+];
+const geocoded = await addGeoloc(needsGeocoding);
+
+const allBrevets = [
+  ...geocoded,
+  ...existingBrevets.filter((b) => b._geoloc?.[0]),
 ];
 
-const newObjects = flags.filter
-  ? data.filter((brevet) => !allObjectIds.has(brevet.objectID))
-  : data;
-const existingObjects = flags.filter
-  ? data.filter((brevet) => allObjectIds.has(brevet.objectID))
-  : data;
+await Bun.write('brevets.json', JSON.stringify(allBrevets, null, 2));
+console.log(`Exported ${allBrevets.length} brevets`);
 
-const existingObjectsWithInheritedGeoLoc = existingObjects.map((brevet) => {
-  if (brevet._geoloc?.[0]) {
-    return brevet;
-  }
-
-  const existingGeoLoc = existingGeoByObjectId.get(brevet.objectID);
-  if (!existingGeoLoc) {
-    return brevet;
-  }
-
-  return {
-    ...brevet,
-    _geoloc: [existingGeoLoc],
-  };
-});
-
-const existingWithGeoLoc = existingObjectsWithInheritedGeoLoc.filter((brevet) =>
-  Boolean(brevet._geoloc?.[0])
-);
-const existingWithoutGeoLoc = existingObjectsWithInheritedGeoLoc.filter(
-  (brevet) => !brevet._geoloc?.[0]
-);
-
-const toGeocode = [...newObjects, ...existingWithoutGeoLoc];
-const geocoded = flags.geocode ? await addGeoloc(toGeocode) : toGeocode;
-
-const objects = [...geocoded, ...existingWithGeoLoc];
-
-await Bun.write('brevets.json', JSON.stringify(objects, null, 2));
-
-console.log(`Exported ${objects.length} brevets`);
+if (errors.length > 0) {
+  console.error('\n❌ Errors occurred during data export:');
+  errors.forEach(({ source, error }) => {
+    console.error(`  - ${source}: ${error instanceof Error ? error.message : String(error)}`);
+  });
+  process.exit(1);
+}

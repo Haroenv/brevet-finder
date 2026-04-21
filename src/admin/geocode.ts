@@ -1,16 +1,20 @@
-import { Client } from '@googlemaps/google-maps-services-js';
 import { Progress } from './progress';
 import { Brevet } from '../types';
 import PlaceKit from '@placekit/client-js';
 
-const { PLACEKIT = '' } = process.env;
-if (!PLACEKIT) {
+const { PLACEKIT = '', SKIP_GEOLOC = '' } = process.env;
+if (!PLACEKIT && !SKIP_GEOLOC) {
   throw new Error('Missing PLACEKIT env variable');
 }
 
 const pk = PlaceKit(PLACEKIT);
 
 export async function addGeoloc(brevets: Brevet[]) {
+  if (SKIP_GEOLOC) {
+    console.warn('SKIP_GEOLOC is set, skipping geocoding');
+    return brevets;
+  }
+
   const progress = new Progress(brevets.length);
 
   for await (const [index, brevet] of brevets.entries()) {
