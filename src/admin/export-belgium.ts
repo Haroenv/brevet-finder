@@ -2,6 +2,7 @@ import { Brevet } from '../types';
 import { checkOk } from './fetch-utils';
 import he from 'he';
 import * as cheerio from 'cheerio';
+import { getCategory } from './clean-utils';
 
 type Raw = {
   id: string;
@@ -127,6 +128,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       dateNumber,
       name: title,
       distance,
+      category: getCategory(distance),
       country,
       city,
       map: $('a[href^=https://www.openrunner]')

@@ -79,7 +79,7 @@ export function GeoSearch({
             latitude: lat,
             longitude: lng,
             title: [
-              item.distance + 'km',
+              (item.category || item.distance) + ' km',
               item.city,
               item.department,
               item.region,

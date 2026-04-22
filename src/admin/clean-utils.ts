@@ -1,3 +1,5 @@
+import { Brevet } from "../types";
+
 const usaStateMap: Record<string, string> = {
   AK: 'Alaska',
   AL: 'Alabama',
@@ -74,4 +76,21 @@ export function cleanRegion(country: string, state: string) {
   }
 
   return state;
+}
+
+export function getCategory(
+  distance: Brevet['distance']
+): Brevet['category'] {
+  if (typeof distance !== 'number' || Number.isNaN(distance)) {
+    return undefined;
+  }
+
+  if (distance < 200) return '<200';
+  if (distance < 300) return '200';
+  if (distance < 400) return '300';
+  if (distance < 600) return '400';
+  if (distance < 1000) return '600';
+  if (distance < 1200) return '1000';
+
+  return '1200+';
 }

@@ -1,6 +1,7 @@
 import { Brevet } from '../types';
 import { dateToNum } from '../date';
 import { fetchXlsx } from './xlsx';
+import { getCategory } from './clean-utils';
 
 type Raw = {
   __rowNum__: string;
@@ -42,6 +43,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         date: dateString,
         dateNumber,
         distance,
+        category: getCategory(distance),
         name: brevet.MANIFESTAZIONE,
         country: country,
         region: brevet.REGIONE,
