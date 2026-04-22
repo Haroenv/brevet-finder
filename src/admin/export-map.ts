@@ -24,7 +24,6 @@ type Raw = {
   club_id?: string | null;
   latitude?: number;
   longitude?: number;
-  clubwebsite?: string;
   status?: string;
 };
 
@@ -109,7 +108,7 @@ function cleanBrevets(brevets: Raw[], clubs: Map<string, RawClub>): Brevet[] {
       distance,
       country,
       region: brevet.region || undefined,
-      department: brevet.departement || undefined,
+      department: brevet.departement && brevet.departement !== brevet.pays ? brevet.departement : undefined,
       city,
       name: brevet.nom_brm || undefined,
       _geoloc:
@@ -119,7 +118,7 @@ function cleanBrevets(brevets: Raw[], clubs: Map<string, RawClub>): Brevet[] {
       map: [brevet.lien_itineraire_brm].filter(
         (x): x is string => Boolean(x)
       ),
-      site: clubData?.page_web_club || brevet.clubwebsite || undefined,
+      site: clubData?.page_web_club || undefined,
       mail: brevet.mail_organisateur ?? undefined,
       club: clubData?.nom_club || brevet.nom_organisateur || brevet.club_id || '',
       ascent:
