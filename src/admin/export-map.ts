@@ -1,6 +1,5 @@
 import { numToDate } from '../date';
 import { Brevet } from '../types';
-import { getCategory } from './clean-utils';
 import { checkOk } from './fetch-utils';
 
 const { SUPABASE = '' } = process.env;
@@ -96,7 +95,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       date,
       dateNumber,
       distance,
-      category: getCategory(distance),
       country,
       region: brevet.region || brevet.nom || undefined,
       department: brevet.departement || undefined,
