@@ -8,7 +8,8 @@ if (!SUPABASE) {
 }
 
 type Raw = {
-  // current schema
+  id: number;
+  created_at?: string;
   nom_organisateur?: string | null;
   mail_organisateur?: string | null;
   distance_brevet?: number | null;
@@ -21,26 +22,36 @@ type Raw = {
   nom_brm?: string | null;
   pays?: string | null;
   club_id?: string | null;
-
-  // legacy schema
-  id: number;
-  created_at?: string;
-  city?: string;
   latitude?: number;
   longitude?: number;
-  distance?: number;
-  date?: string;
-  codeClub?: string;
-  nomorganisateur?: string;
-  mailorganisateur?: string;
-  maplink?: string;
   clubwebsite?: string;
-  idorga?: number;
-  country?: string;
   status?: string;
-  nom?: string;
-  nomClub?: string;
 };
+
+type RawClub = {
+  code_acp: string;
+  nom_club: string;
+  pays: string;
+  page_web_club?: string | null;
+};
+
+async function fetchClubs(): Promise<Map<string, RawClub>> {
+  const apikey = SUPABASE;
+  const clubs = await fetch(
+    'https://ranqsfwmoexghudpvpob.supabase.co/rest/v1/clubs?select=%2A',
+    {
+      headers: {
+        apikey,
+        Authorization: 'Bearer ' + apikey,
+      },
+      method: 'GET',
+    }
+  )
+    .then(checkOk)
+    .then((res) => res.json() as Promise<RawClub[]>);
+
+  return new Map(clubs.map((c) => [c.code_acp, c]));
+}
 
 async function fetchBrevets(): Promise<Raw[]> {
   const apikey = SUPABASE;
@@ -76,18 +87,19 @@ async function fetchBrevets(): Promise<Raw[]> {
   return all;
 }
 
-function cleanBrevets(brevets: Raw[]): Brevet[] {
+function cleanBrevets(brevets: Raw[], clubs: Map<string, RawClub>): Brevet[] {
   return brevets.map((brevet) => {
-    const rawDate = brevet.date_brevet || brevet.date || '';
+    const clubData = brevet.club_id ? clubs.get(brevet.club_id) : undefined;
+    const rawDate = brevet.date_brevet || '';
     const dateNumber = rawDate.includes('-')
       ? parseInt(rawDate.replaceAll('-', ''), 10)
       : parseInt(rawDate.split('/').reverse().join(''), 10);
     const date = rawDate.includes('-')
       ? rawDate.split('-').reverse().join('/')
       : rawDate;
-    const distance = brevet.distance_brevet ?? brevet.distance ?? undefined;
-    const country = brevet.pays || brevet.country || '';
-    const city = brevet.ville_depart || brevet.city || '';
+    const distance = brevet.distance_brevet ?? undefined;
+    const country = brevet.pays || '';
+    const city = brevet.ville_depart || '';
     const time = numToDate(dateNumber).getTime() / 1000;
 
     return {
@@ -96,7 +108,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       dateNumber,
       distance,
       country,
-      region: brevet.region || brevet.nom || undefined,
+      region: brevet.region || undefined,
       department: brevet.departement || undefined,
       city,
       name: brevet.nom_brm || undefined,
@@ -104,12 +116,12 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         brevet.latitude && brevet.longitude
           ? [{ lat: brevet.latitude, lng: brevet.longitude }]
           : [],
-      map: [brevet.lien_itineraire_brm || brevet.maplink].filter(
+      map: [brevet.lien_itineraire_brm].filter(
         (x): x is string => Boolean(x)
       ),
-      site: brevet.clubwebsite,
-      mail: brevet.mail_organisateur || brevet.mailorganisateur,
-      club: brevet.club_id || brevet.nom_organisateur || brevet.nomClub || '',
+      site: clubData?.page_web_club || brevet.clubwebsite || undefined,
+      mail: brevet.mail_organisateur ?? undefined,
+      club: clubData?.nom_club || brevet.nom_organisateur || brevet.club_id || '',
       ascent:
         typeof brevet.denivele === 'number'
           ? brevet.denivele
@@ -123,5 +135,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 
 export async function getData() {
   console.log('Fetching Supabase brevets...');
-  return cleanBrevets(await fetchBrevets());
+  const [brevets, clubs] = await Promise.all([fetchBrevets(), fetchClubs()]);
+  return cleanBrevets(brevets, clubs);
 }
