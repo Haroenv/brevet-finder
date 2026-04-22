@@ -71,7 +71,7 @@ function DisplayDetails() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
       <div className="ais-Hits-item">
-        <HitCard hit={items[0]} link={false} />
+        <HitCard hit={items[0]} link={false} sendEvent={sendEvent} />
       </div>
       {items[0]._geoloc?.[0] && (
         <GeoSearch

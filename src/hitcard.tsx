@@ -8,6 +8,7 @@ import {
   usePlans,
   type PlanStatus,
 } from './plans';
+import { SendEventForHits } from 'instantsearch.js/es/lib/utils';
 
 // Validate and sanitize URLs to prevent XSS via javascript: or data: protocols
 function isValidUrl(url: unknown): url is string {
@@ -106,9 +107,11 @@ function intersperse<T, TS>(parts: T[], separator: TS): (T | TS)[] {
 
 export function HitCard({
   hit,
+  sendEvent,
   link = true,
 }: {
   hit: Hit<Brevet>;
+  sendEvent: SendEventForHits;
   link?: boolean;
 }) {
   const { getPlanStatus, setPlanStatus } = usePlans();
@@ -194,7 +197,17 @@ export function HitCard({
                   className={`hit-card__plan-pill${isActive ? ' is-active' : ''}`}
                   aria-pressed={isActive}
                   onClick={() => {
-                    setPlanStatus(hit.objectID, isActive ? null : status);
+                    const nextStatus = isActive ? null : status;
+
+                    if (nextStatus) {
+                      sendEvent(
+                        'conversion',
+                        hit,
+                        `Plan status set to ${PLAN_STATUS_LABELS[nextStatus]}`
+                      );
+                    }
+
+                    setPlanStatus(hit.objectID, nextStatus);
                   }}
                 >
                   <span className="hit-card__plan-pill-icon" aria-hidden="true">

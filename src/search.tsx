@@ -564,7 +564,7 @@ function ViewSwitcher() {
 
 function DisplayGeo() {
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
-  const { items } = useHits<Brevet>();
+  const { items, sendEvent } = useHits<Brevet>();
 
   return (
     <>
@@ -594,7 +594,7 @@ function DisplayGeo() {
                     : ''
                 }`}
               >
-                <HitCard hit={hit} />
+                <HitCard hit={hit} sendEvent={sendEvent} />
               </li>
             ))}
         </ul>
