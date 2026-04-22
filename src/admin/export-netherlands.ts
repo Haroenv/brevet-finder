@@ -1,5 +1,6 @@
 import { dateToNum } from '../date';
 import { Brevet } from '../types';
+import { getCategory } from './clean-utils';
 import { checkOk } from './fetch-utils';
 
 type Raw = {
@@ -49,6 +50,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       dateNumber,
       name: title,
       distance,
+      category: getCategory(distance),
       country,
       city,
       site: brevet.url,

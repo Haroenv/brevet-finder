@@ -1,4 +1,5 @@
 import { Brevet } from '../types';
+import { getCategory } from './clean-utils';
 import { checkOk } from './fetch-utils';
 
 type CalendarRaw = {
@@ -111,6 +112,7 @@ function cleanBrevets(brevets: CalendarRaw[]): Brevet[] {
       date,
       dateNumber,
       distance,
+      category: getCategory(distance),
       country,
       city,
       _geoloc: [],

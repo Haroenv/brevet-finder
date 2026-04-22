@@ -4,6 +4,7 @@ export type Brevet = {
   dateNumber: number;
   name?: string;
   distance?: number;
+  category?: '<200' | '200' | '300' | '400' | '600' | '1000' | '1200+';
   country: string;
   region?: string;
   department?: string;

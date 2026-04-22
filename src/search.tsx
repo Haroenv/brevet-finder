@@ -168,17 +168,47 @@ function Sidebar({ logo = true }: { logo?: boolean }) {
           <DatePicker attribute="dateNumber" />
         </Panel>
       </RangeWrapper>
-      <RefinementListWrapper attribute="distance">
+      <RefinementListWrapper attribute="category">
         <Panel header="distance">
           <RefinementList
-            attribute="distance"
+            attribute="category"
             limit={6}
             showMoreLimit={40}
             transformItems={(items) =>
               items
-                .toSorted((a, b) => parseInt(a.value) - parseInt(b.value))
+                .toSorted(
+                  (a, b) =>
+                    [
+                      '<200',
+                      '200',
+                      '300',
+                      '400',
+                      '600',
+                      '1000',
+                      '1200+',
+                    ].indexOf(a.value) -
+                    [
+                      '<200',
+                      '200',
+                      '300',
+                      '400',
+                      '600',
+                      '1000',
+                      '1200+',
+                    ].indexOf(b.value)
+                )
                 .map((item) => {
-                  const distanceColor = getDistanceColor(parseInt(item.value));
+                  const distanceColor = getDistanceColor(
+                    {
+                      '<200': 0,
+                      '200': 200,
+                      '300': 300,
+                      '400': 400,
+                      '600': 600,
+                      '1000': 1000,
+                      '1200+': 1200,
+                    }[item.value] || 0
+                  );
                   return {
                     ...item,
                     label: (
@@ -189,7 +219,7 @@ function Sidebar({ logo = true }: { logo?: boolean }) {
                           color: distanceColor.text,
                         }}
                       >
-                        {item.label} km
+                        {item.label}
                       </div>
                     ) as unknown as string,
                   };
@@ -274,13 +304,13 @@ function Main() {
                       })),
                     };
                   }
-                  if (item.attribute === 'distance') {
+                  if (item.attribute === 'category') {
                     return {
                       ...item,
-                      label: 'distance',
+                      label: 'distance category',
                       refinements: item.refinements.map((refinement) => ({
                         ...refinement,
-                        label: refinement.label + ' km',
+                        label: refinement.label,
                       })),
                     };
                   }

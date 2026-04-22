@@ -38,7 +38,7 @@ function getFallbackSearchUrl(hit: Hit<Brevet>) {
     hit.club,
     hit.city,
     hit.country,
-    hit.distance ? `${hit.distance}km` : '',
+    hit.category || (hit.distance ? `${hit.distance}km` : ''),
     hit.date,
     'BRM',
   ]
@@ -58,6 +58,16 @@ const DISTANCE_COLORS: Map<number, { bg: string; text: string }> = new Map([
   [1200, { bg: '#b8960c', text: '#fff' }],
 ]);
 
+const CATEGORY_TO_DISTANCE: Record<NonNullable<Brevet['category']>, number> = {
+  '<200': 0,
+  '200': 200,
+  '300': 300,
+  '400': 400,
+  '600': 600,
+  '1000': 1000,
+  '1200+': 1200,
+};
+
 export function getDistanceColor(distance: number = 0) {
   let key = 0;
   for (const threshold of DISTANCE_COLORS.keys()) {
@@ -66,6 +76,11 @@ export function getDistanceColor(distance: number = 0) {
   }
 
   return DISTANCE_COLORS.get(key)!;
+}
+
+export function getCategoryColor(category: Brevet['category']) {
+  const bucket = category ? CATEGORY_TO_DISTANCE[category] : 0;
+  return getDistanceColor(bucket);
 }
 
 function getRelativeDate(dateNumber: number): string {
@@ -128,7 +143,7 @@ export function HitCard({
     <Highlight attribute="name" hit={hit} />
   ) : (
     intersperse(
-      ['city', 'distance']
+      ['city', hit.category ? 'category' : 'distance']
         .filter(
           (key): key is keyof Hit<Brevet> =>
             key in hit && Boolean((hit as any)[key])
@@ -137,7 +152,9 @@ export function HitCard({
       ' '
     )
   );
-  const distanceColor = getDistanceColor(hit.distance);
+  const distanceColor = hit.category
+    ? getCategoryColor(hit.category)
+    : getDistanceColor(hit.distance);
   const relativeDate = getRelativeDate(hit.dateNumber);
 
   return (
@@ -151,7 +168,7 @@ export function HitCard({
                 <em className="hit-card__relative-date">{relativeDate}</em>
               )}
             </span>
-            {Boolean(hit.distance) && (
+            {Boolean(hit.category || hit.distance) && (
               <span
                 className="hit-card__badge hit-card__badge--distance"
                 style={{
@@ -159,7 +176,7 @@ export function HitCard({
                   color: distanceColor.text,
                 }}
               >
-                {hit.distance} km
+                {hit.category || hit.distance} km
               </span>
             )}
           </div>

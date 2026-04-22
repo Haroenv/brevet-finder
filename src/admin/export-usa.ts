@@ -1,6 +1,6 @@
 import { Brevet } from '../types';
 import * as cheerio from 'cheerio';
-import { cleanRegion } from './clean-utils';
+import { cleanRegion, getCategory } from './clean-utils';
 import { checkOk } from './fetch-utils';
 
 type Raw = {
@@ -62,6 +62,7 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       date,
       dateNumber,
       distance,
+      category: getCategory(distance),
       city,
       region: cleanRegion(country, state),
       country,

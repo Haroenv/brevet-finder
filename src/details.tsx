@@ -48,7 +48,8 @@ function WindowTitle() {
     if (items[0]) {
       const brevet = items[0];
       const location = brevet.city || brevet.region || brevet.country;
-      document.title = `${location} ${brevet.date}  ${brevet.distance}km - Brevet Finder`;
+      const category = (brevet.category || brevet.distance) + ' km';
+      document.title = `${location} ${brevet.date} ${category} - Brevet Finder`;
     }
   }, [items[0]?.objectID]);
 
