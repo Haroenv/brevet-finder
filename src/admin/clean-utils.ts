@@ -64,6 +64,18 @@ const australiaStateMap: Record<string, string> = {
   WA: 'Western Australia',
 };
 
+const countryMap: Record<string, string> = {
+  Allemagne: 'Germany',
+  Suisse: 'Switzerland',
+  RUSSIE: 'Russia',
+  Brasil: 'Brazil',
+  Brésil: 'Brazil',
+};
+
+export function cleanCountry(country: string): string {
+  return countryMap[country] || country;
+}
+
 export function cleanRegion(country: string, state: string) {
   if (country === 'USA') {
     return usaStateMap[state] || state;

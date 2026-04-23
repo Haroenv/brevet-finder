@@ -1,5 +1,6 @@
 import { numToDate } from '../date';
 import { Brevet } from '../types';
+import { cleanCountry, cleanRegion } from './clean-utils';
 import { checkOk } from './fetch-utils';
 
 const { SUPABASE = '' } = process.env;
@@ -97,7 +98,7 @@ function cleanBrevets(brevets: Raw[], clubs: Map<string, RawClub>): Brevet[] {
       ? rawDate.split('-').reverse().join('/')
       : rawDate;
     const distance = brevet.distance_brevet ?? undefined;
-    const country = brevet.pays || '';
+    const country = cleanCountry(brevet.pays || '');
     const city = brevet.ville_depart || '';
     const time = numToDate(dateNumber).getTime() / 1000;
 
@@ -107,7 +108,7 @@ function cleanBrevets(brevets: Raw[], clubs: Map<string, RawClub>): Brevet[] {
       dateNumber,
       distance,
       country,
-      region: brevet.region || undefined,
+      region: brevet.region ? cleanRegion(country, brevet.region) : undefined,
       department: brevet.departement && brevet.departement !== brevet.pays ? brevet.departement : undefined,
       city,
       name: brevet.nom_brm || undefined,
