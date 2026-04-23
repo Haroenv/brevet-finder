@@ -1,6 +1,5 @@
 import { Brevet } from '../types';
 import { checkOk } from './fetch-utils';
-import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 
 type CalendarRaw = {
   Name: string;
@@ -105,8 +104,6 @@ function cleanBrevets(brevets: CalendarRaw[]): Brevet[] {
     const city = (brevet.StartLocation || '').trim();
     const country = 'UK';
     const distance = brevet.NominalDistance || brevet.Distance;
-    const baseObjectID = [date, distance, country, city.replace(/\W+/g, '_')].join('__');
-
     return {
       brevet,
       date,
@@ -114,24 +111,12 @@ function cleanBrevets(brevets: CalendarRaw[]): Brevet[] {
       city,
       country,
       distance,
-      baseObjectID,
     };
   });
 
-  const counts = countByKey(prepared.map((x) => x.baseObjectID));
-
   return prepared.map(
-    ({ brevet, date, dateNumber, city, country, distance, baseObjectID }) => {
-      const objectID = makeCollisionSafeObjectID(
-        baseObjectID,
-        counts,
-        [
-          brevet.Name || '',
-          brevet.OrganizerName || '',
-          brevet.Url || '',
-          brevet.Id || '',
-        ].join('|')
-      );
+    ({ brevet, date, dateNumber, city, country, distance }) => {
+      const objectID = 'auk__' + brevet.Id;
 
       return {
         objectID,
