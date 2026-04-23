@@ -1,6 +1,5 @@
 import { Brevet } from '../types';
 import { checkOk } from './fetch-utils';
-import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 import he from 'he';
 import * as cheerio from 'cheerio';
 
@@ -119,8 +118,6 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
     const { year, month, day } = brevet.start_date_details;
     const date = [day, month, year].join('/');
     const dateNumber = parseInt([year, month, day].join(''), 10);
-    const baseObjectID = [date, distance, country, city].join('__');
-
     const $ = cheerio.load(brevet.description);
 
     return {
@@ -132,24 +129,12 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
       date,
       dateNumber,
       $,
-      baseObjectID,
     };
   });
 
-  const counts = countByKey(prepared.map((x) => x.baseObjectID));
-
   return prepared.map(
-    ({ brevet, distance, country, city, title, date, dateNumber, $, baseObjectID }) => {
-      const objectID = makeCollisionSafeObjectID(
-        baseObjectID,
-        counts,
-        [
-          title,
-          brevet.slug,
-          brevet.url,
-          ($('a[href^=mailto:]').attr('href') || '').replace('mailto:', ''),
-        ].join('|')
-      );
+    ({ brevet, distance, country, city, title, date, dateNumber, $ }) => {
+      const objectID = 'belgium__' + brevet.id;
 
       return {
         objectID,

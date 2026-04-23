@@ -22,7 +22,7 @@ async function fetchBrevets(): Promise<Raw[]> {
   const url = new URL('https://randonneurs.nl/api/v1/events');
   url.search = new URLSearchParams({
     from: new Date().toISOString().split('T')[0],
-    until: '2026-01-01',
+    until: '2027-01-01',
   }).toString();
 
   const events: Raw[] = await fetch(url)
@@ -43,8 +43,12 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
     const mail = brevet.contact.email;
     const club = 'Randonneurs NL';
 
+    // Extract stable numeric ID from event URL, e.g. "https://randonneurs.nl/nl/event/653/BRM-..."
+    const urlIdMatch = brevet.url.match(/\/event\/(\d+)\//);
+    const urlId = urlIdMatch ? urlIdMatch[1] : brevet.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
     return {
-      objectID: [date, distance, country, city].join('__'),
+      objectID: 'nl__' + urlId,
       date,
       dateNumber,
       name: title,
