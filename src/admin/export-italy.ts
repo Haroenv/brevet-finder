@@ -1,5 +1,6 @@
 import { Brevet } from '../types';
 import { dateToNum } from '../date';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 import { fetchXlsx } from './xlsx';
 
 type Raw = {
@@ -27,7 +28,7 @@ async function fetchViaXlsx(): Promise<Raw[]> {
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets
+  const prepared = brevets
     .filter((brevet) => !isNaN(parseInt(brevet.DATA)))
     .map((brevet) => {
       const distance = parseInt(brevet.DISTANZA) || undefined;
@@ -36,21 +37,45 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
         Date.parse(dateString.split('/').reverse().join('-'))
       );
       const dateNumber = dateToNum(dateAsDate);
+      const baseObjectID = [dateString, distance, country, brevet.COMUNE].join('__');
 
       return {
-        objectID: [dateString, distance, country, brevet.COMUNE].join('__'),
-        date: dateString,
-        dateNumber,
+        brevet,
         distance,
-        name: brevet.MANIFESTAZIONE,
-        country: country,
-        region: brevet.REGIONE,
-        city: brevet.COMUNE,
-        site: 'https://www.audaxitalia.it/index.php?pg=manifestazioni',
-        club: brevet.ORGANIZZATORE,
-        meta: brevet,
+        dateString,
+        dateNumber,
+        baseObjectID,
       };
     });
+
+  const counts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(({ brevet, distance, dateString, dateNumber, baseObjectID }) => {
+    const objectID = makeCollisionSafeObjectID(
+      baseObjectID,
+      counts,
+      [
+        brevet.MANIFESTAZIONE || '',
+        brevet.ORGANIZZATORE || '',
+        brevet.REGIONE || '',
+        brevet['TIPO BREVETTO'] || '',
+      ].join('|')
+    );
+
+    return {
+      objectID,
+      date: dateString,
+      dateNumber,
+      distance,
+      name: brevet.MANIFESTAZIONE,
+      country: country,
+      region: brevet.REGIONE,
+      city: brevet.COMUNE,
+      site: 'https://www.audaxitalia.it/index.php?pg=manifestazioni',
+      club: brevet.ORGANIZZATORE,
+      meta: brevet,
+    };
+  });
 }
 
 export async function getData() {

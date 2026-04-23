@@ -1,5 +1,6 @@
 import { Brevet } from '../types';
 import { checkOk } from './fetch-utils';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 import he from 'he';
 import * as cheerio from 'cheerio';
 
@@ -106,7 +107,7 @@ async function fetchBrevets(
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets.map((brevet) => {
+  const prepared = brevets.map((brevet) => {
     const distance = parseInt(
       brevet.categories.find(
         (cat) => cat.name !== 'brm' && Number.isInteger(parseInt(cat.name))
@@ -118,35 +119,65 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
     const { year, month, day } = brevet.start_date_details;
     const date = [day, month, year].join('/');
     const dateNumber = parseInt([year, month, day].join(''), 10);
+    const baseObjectID = [date, distance, country, city].join('__');
 
     const $ = cheerio.load(brevet.description);
 
     return {
-      objectID: [date, distance, country, city].join('__'),
-      date,
-      dateNumber,
-      name: title,
+      brevet,
       distance,
       country,
       city,
-      map: $('a[href^=https://www.openrunner]')
-        .toArray()
-        .map((el) => $(el).attr('href'))
-        .filter((x): x is string => !!x),
-      site: brevet.url,
-      mail: ($('a[href^=mailto:]').attr('href') || '').replace('mailto:', ''),
-      club: $('a[href^=mailto:]')
-        .parent()
-        .parent()
-        .find('li')
-        .first()
-        .text()
-        .trim(),
-      time: 0,
-      ascent: 0,
-      meta: brevet,
+      title,
+      date,
+      dateNumber,
+      $,
+      baseObjectID,
     };
   });
+
+  const counts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(
+    ({ brevet, distance, country, city, title, date, dateNumber, $, baseObjectID }) => {
+      const objectID = makeCollisionSafeObjectID(
+        baseObjectID,
+        counts,
+        [
+          title,
+          brevet.slug,
+          brevet.url,
+          ($('a[href^=mailto:]').attr('href') || '').replace('mailto:', ''),
+        ].join('|')
+      );
+
+      return {
+        objectID,
+        date,
+        dateNumber,
+        name: title,
+        distance,
+        country,
+        city,
+        map: $('a[href^=https://www.openrunner]')
+          .toArray()
+          .map((el) => $(el).attr('href'))
+          .filter((x): x is string => !!x),
+        site: brevet.url,
+        mail: ($('a[href^=mailto:]').attr('href') || '').replace('mailto:', ''),
+        club: $('a[href^=mailto:]')
+          .parent()
+          .parent()
+          .find('li')
+          .first()
+          .text()
+          .trim(),
+        time: 0,
+        ascent: 0,
+        meta: brevet,
+      };
+    }
+  );
 }
 
 export async function getData() {

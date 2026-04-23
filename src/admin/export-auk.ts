@@ -1,5 +1,6 @@
 import { Brevet } from '../types';
 import { checkOk } from './fetch-utils';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 
 type CalendarRaw = {
   Name: string;
@@ -94,7 +95,7 @@ function padDate(date: number) {
 }
 
 function cleanBrevets(brevets: CalendarRaw[]): Brevet[] {
-  return brevets.map((brevet) => {
+  const prepared = brevets.map((brevet) => {
     const jsDate = new Date(brevet.EventDate);
     const year = jsDate.getFullYear();
     const month = padDate(jsDate.getMonth() + 1);
@@ -104,22 +105,50 @@ function cleanBrevets(brevets: CalendarRaw[]): Brevet[] {
     const city = (brevet.StartLocation || '').trim();
     const country = 'UK';
     const distance = brevet.NominalDistance || brevet.Distance;
+    const baseObjectID = [date, distance, country, city.replace(/\W+/g, '_')].join('__');
 
     return {
-      objectID: [date, distance, country, city.replace(/\W+/g, '_')].join('__'),
-      name: brevet.Name,
+      brevet,
       date,
       dateNumber,
-      distance,
-      country,
       city,
-      _geoloc: [],
-      site: url(brevet.Url),
-      club: brevet.OrganizerName,
-      ascent: brevet.AAAPoints || 0,
-      meta: brevet,
+      country,
+      distance,
+      baseObjectID,
     };
   });
+
+  const counts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(
+    ({ brevet, date, dateNumber, city, country, distance, baseObjectID }) => {
+      const objectID = makeCollisionSafeObjectID(
+        baseObjectID,
+        counts,
+        [
+          brevet.Name || '',
+          brevet.OrganizerName || '',
+          brevet.Url || '',
+          brevet.Id || '',
+        ].join('|')
+      );
+
+      return {
+        objectID,
+        name: brevet.Name,
+        date,
+        dateNumber,
+        distance,
+        country,
+        city,
+        _geoloc: [],
+        site: url(brevet.Url),
+        club: brevet.OrganizerName,
+        ascent: brevet.AAAPoints || 0,
+        meta: brevet,
+      };
+    }
+  );
 }
 
 export async function getData() {
