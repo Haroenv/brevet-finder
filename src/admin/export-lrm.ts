@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import { Brevet } from '../types';
 import { numToDate, numToDateString, weirdDateToNum } from '../date';
 import { checkOk } from './fetch-utils';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 
 type Raw = {
   Date: string;
@@ -133,18 +134,43 @@ function resolveGoogleRedirect(url: string | undefined) {
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets.map((brevet) => {
+  const prepared = brevets.map((brevet) => {
     const distance =
       Math.floor(parseInt(brevet.Distance.replace(',', ''), 10) / 100) * 100 ||
       undefined;
     const dateNumber = weirdDateToNum(brevet.Date);
     const date = numToDateString(dateNumber).split('-').reverse().join('/');
     const time = numToDate(dateNumber).getTime() / 1000;
+    const baseObjectID = [date, distance, brevet.Country, brevet['Start Location']].join(
+      '__'
+    );
 
     return {
-      objectID: [date, distance, brevet.Country, brevet['Start Location']].join(
-        '__'
-      ),
+      brevet,
+      distance,
+      dateNumber,
+      date,
+      time,
+      baseObjectID,
+    };
+  });
+
+  const counts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(({ brevet, distance, dateNumber, date, time, baseObjectID }) => {
+    const objectID = makeCollisionSafeObjectID(
+      baseObjectID,
+      counts,
+      [
+        brevet['Event Name'] || '',
+        brevet.Organizer || '',
+        brevet.links?.Distance || '',
+        brevet.links?.['Event Name'] || '',
+      ].join('|')
+    );
+
+    return {
+      objectID,
       date,
       dateNumber,
       distance,

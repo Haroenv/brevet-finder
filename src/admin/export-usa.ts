@@ -1,7 +1,9 @@
 import { Brevet } from '../types';
 import * as cheerio from 'cheerio';
+import { numToDate } from '../date';
 import { cleanRegion } from './clean-utils';
 import { checkOk } from './fetch-utils';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 
 type Raw = {
   location: string;
@@ -49,29 +51,70 @@ const url = (pathOrUrl?: string) =>
   ).toString();
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets.map((brevet) => {
+  const prepared = brevets.map((brevet) => {
     const [state, city] = brevet.location.split(': ');
     const date = brevet.date.split('/').reverse().join('/');
     const dateNumber = parseInt(brevet.date.replaceAll('/', ''), 10);
     const country = 'USA';
     const distance = Math.floor(parseInt(brevet.distance, 10) / 100) * 100;
+    const baseObjectID = [date, distance, country, city].join('__');
 
     return {
-      objectID: [date, distance, country, city].join('__'),
-      name: brevet.name,
+      brevet,
+      state,
+      city,
       date,
       dateNumber,
-      distance,
-      city,
-      region: cleanRegion(country, state),
       country,
-      club: 'RUSA',
-      site: brevet.link,
-      mail: brevet.contactLink,
-      map: brevet.map ? [brevet.map] : [],
-      meta: brevet,
+      distance,
+      baseObjectID,
     };
   });
+
+  const counts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(
+    ({
+      brevet,
+      state,
+      city,
+      date,
+      dateNumber,
+      country,
+      distance,
+      baseObjectID,
+    }) => {
+      const objectID = makeCollisionSafeObjectID(
+        baseObjectID,
+        counts,
+        [
+          brevet.name || '',
+          brevet.contact || '',
+          brevet.contactLink || '',
+          brevet.link || '',
+          brevet.map || '',
+          brevet.type || '',
+        ].join('|')
+      );
+
+      return {
+        objectID,
+        name: brevet.name,
+        date,
+        dateNumber,
+        time: numToDate(dateNumber).getTime() / 1000,
+        distance,
+        city,
+        region: cleanRegion(country, state),
+        country,
+        club: 'RUSA',
+        site: brevet.link,
+        mail: brevet.contactLink,
+        map: brevet.map ? [brevet.map] : [],
+        meta: brevet,
+      };
+    }
+  );
 }
 
 export async function getData() {

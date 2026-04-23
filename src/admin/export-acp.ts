@@ -1,6 +1,7 @@
 import { Brevet } from '../types';
 import { cleanCountry, cleanRegion } from './clean-utils';
 import { checkOk } from './fetch-utils';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 
 type Raw = {
   Date: string;
@@ -65,8 +66,12 @@ function cleanDate(date: string): string {
   return [day, month, year].join('/');
 }
 
+function makeBaseObjectID(date: string, distance: number, country: string, city: string) {
+  return [date, distance, country, city].join('__');
+}
+
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets.map((brevet) => {
+  const prepared = brevets.map((brevet) => {
     const country = cleanCountry(brevet.Pays);
     const date = cleanDate(brevet.Date);
     const dateNumber = parseInt(date.split('/').reverse().join(''), 10);
@@ -74,27 +79,67 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
     const city = brevet.Ville;
     const region = cleanRegion(country, brevet.Region);
 
+    const baseObjectID = makeBaseObjectID(date, distance, country, city);
+
     return {
-      objectID: [date, distance, country, city].join('__'),
+      brevet,
+      country,
       date,
       dateNumber,
       distance,
-      country,
-      region,
-      department: brevet.Departement,
       city,
-      map: brevet.RoadMap.split(/[;\n]|,\s+|\+/)
-        .map((map) => map.trim())
-        .filter((map) => map && map !== '+'),
-      site: brevet.SiteWeb?.trim(),
-      mail: brevet.MailContact,
-      club: brevet.NomClub,
-      ascent: brevet.Denivele,
-      time: brevet.TimeDate,
-      status: brevet.Statut,
-      meta: brevet,
+      region,
+      baseObjectID,
     };
   });
+
+  const baseCounts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(
+    ({
+      brevet,
+      country,
+      date,
+      dateNumber,
+      distance,
+      city,
+      region,
+      baseObjectID,
+    }) => {
+      const objectID = makeCollisionSafeObjectID(
+        baseObjectID,
+        baseCounts,
+        [
+          brevet.NomClub || '',
+          brevet.MailContact || '',
+          brevet.SiteWeb || '',
+          brevet.Region || '',
+          brevet.Departement || '',
+        ].join('|')
+      );
+
+      return {
+        objectID,
+        date,
+        dateNumber,
+        distance,
+        country,
+        region,
+        department: brevet.Departement,
+        city,
+        map: brevet.RoadMap.split(/[;\n]|,\s+|\+/)
+          .map((map) => map.trim())
+          .filter((map) => map && map !== '+'),
+        site: brevet.SiteWeb?.trim(),
+        mail: brevet.MailContact,
+        club: brevet.NomClub,
+        ascent: brevet.Denivele,
+        time: brevet.TimeDate,
+        status: brevet.Statut,
+        meta: brevet,
+      };
+    }
+  );
 }
 
 export async function getData() {

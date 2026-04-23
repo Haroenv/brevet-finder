@@ -1,5 +1,6 @@
 import { Brevet } from '../types';
 import { numToDateString, shortYearDateToDate, dateToNum } from '../date';
+import { countByKey, makeCollisionSafeObjectID } from './id-utils';
 import { fetchXlsx } from './xlsx';
 
 type Raw = {
@@ -47,28 +48,52 @@ function eventUrl(eventName: string, distance: number) {
 }
 
 function cleanBrevets(brevets: Raw[]): Brevet[] {
-  return brevets
+  const prepared = brevets
     .filter((brevet) => !isNaN(parseInt(brevet.Date)))
     .map((brevet) => {
       const distance = parseInt(brevet.Distance) || 0;
       const dateNumber = dateToNum(shortYearDateToDate(brevet.Date));
       const date = numToDateString(dateNumber).split('-').reverse().join('/');
+      const baseObjectID = [date, distance, country, brevet.Start].join('__');
 
       return {
-        objectID: [date, distance, country, brevet.Start].join('__'),
+        brevet,
+        distance,
         date,
         dateNumber,
-        distance,
-        name: brevet['Event Name'],
-        country: country,
-        region: brevet.Province,
-        city: brevet.Start,
-        site: eventUrl(brevet['Event Name'], distance),
-        mail: brevet['E-Mail'],
-        club: brevet['Organising Club'],
-        meta: brevet,
+        baseObjectID,
       };
     });
+
+  const counts = countByKey(prepared.map((x) => x.baseObjectID));
+
+  return prepared.map(({ brevet, distance, date, dateNumber, baseObjectID }) => {
+    const objectID = makeCollisionSafeObjectID(
+      baseObjectID,
+      counts,
+      [
+        brevet['Event Name'] || '',
+        brevet['Organising Club'] || '',
+        brevet['E-Mail'] || '',
+        brevet.Province || '',
+      ].join('|')
+    );
+
+    return {
+      objectID,
+      date,
+      dateNumber,
+      distance,
+      name: brevet['Event Name'],
+      country: country,
+      region: brevet.Province,
+      city: brevet.Start,
+      site: eventUrl(brevet['Event Name'], distance),
+      mail: brevet['E-Mail'],
+      club: brevet['Organising Club'],
+      meta: brevet,
+    };
+  });
 }
 
 export async function getData() {
