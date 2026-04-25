@@ -11,7 +11,11 @@ import * as belgium from './export-belgium';
 import * as netherlands from './export-netherlands';
 import { Brevet } from '../types';
 
-const { ALGOLIA_APP = '', ALGOLIA_WRITE = '', SKIP_INDEX = "" } = process.env;
+const {
+  ALGOLIA_APP = '',
+  ALGOLIA_WRITE = '',
+  SKIP_INDEX = '',
+} = process.env;
 if (!ALGOLIA_APP && !SKIP_INDEX) {
   throw new Error('Missing ALGOLIA_APP env variable');
 }
@@ -74,7 +78,9 @@ async function getExistingData() {
   return { existingObjectIDs, existingGeo };
 }
 
-function inheritGeoloc(brevet: Brevet, existingGeo: Map<string, any>) {
+type Geoloc = { lat: number; lng: number };
+
+function inheritGeoloc(brevet: Brevet, existingGeo: Map<string, Geoloc>) {
   if (brevet._geoloc?.[0]) return brevet;
 
   const geoLoc = existingGeo.get(brevet.objectID);
@@ -83,6 +89,146 @@ function inheritGeoloc(brevet: Brevet, existingGeo: Map<string, any>) {
 
 function normalize(value?: string) {
   return (value || '').trim().toLowerCase();
+}
+
+const ROUTE_HOSTS = new Set([
+  'ridewithgps.com',
+  'www.ridewithgps.com',
+  'openrunner.com',
+  'www.openrunner.com',
+  'strava.com',
+  'www.strava.com',
+  'connect.garmin.com',
+  'garmin.com',
+  'www.garmin.com',
+  'plotaroute.com',
+  'www.plotaroute.com',
+  'komoot.com',
+  'www.komoot.com',
+  'alltrails.com',
+  'www.alltrails.com',
+  'mapmagic.app',
+  'nakarte.me',
+  'brmtool.kantaro.org',
+]);
+
+function normalizeUrl(url: string) {
+  return url
+    .trim()
+    .replace(/&amp;|&#0*38;|&#38;/gi, '&')
+    .replace(/[).,;]+$/, '');
+}
+
+function isDirectRouteFile(url: string) {
+  return /\.(gpx|kml|tcx|geojson|json)(\?|#|$)/i.test(url);
+}
+
+function isLikelyRouteUrl(url: string) {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return false;
+  }
+
+  if (isDirectRouteFile(url)) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (!ROUTE_HOSTS.has(parsed.hostname)) {
+      return false;
+    }
+
+    const path = parsed.pathname;
+
+    if (parsed.hostname.includes('ridewithgps.com')) {
+      return (
+        /^\/routes\/\d+(?:\.gpx)?$/i.test(path) ||
+        /^\/collections\/\d+$/i.test(path) ||
+        (path === '/embeds' &&
+          (parsed.searchParams.get('type') === 'route' ||
+            parsed.searchParams.get('type') === 'collection'))
+      );
+    }
+
+    if (parsed.hostname.includes('openrunner.com')) {
+      return (
+        /^\/r\/\d+$/i.test(path) ||
+        /^\/(?:[a-z]{2}\/)?route-details\/\d+$/i.test(path)
+      );
+    }
+
+    if (parsed.hostname.includes('strava.com')) {
+      return /^\/routes\/\d+$/i.test(path);
+    }
+
+    if (parsed.hostname.includes('plotaroute.com')) {
+      return /^\/route\/\d+$/i.test(path);
+    }
+
+    if (parsed.hostname.includes('komoot.com')) {
+      return /^\/(?:tour|collection)\/\d+$/i.test(path);
+    }
+
+    if (parsed.hostname.includes('alltrails.com')) {
+      return /\/trail\//i.test(path) || /\/explore\/map\//i.test(path);
+    }
+
+    // For remaining known hosts (Garmin, MapMagic, Nakarte, BRMTool),
+    // keep host-level acceptance because path formats vary widely.
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function collectRouteUrlsFromValue(value: unknown, urls: Set<string>) {
+  if (!value) {
+    return;
+  }
+
+  if (typeof value === 'string') {
+    const matches = value.match(/https?:\/\/[^\s'"<>]+/g) || [];
+    for (const match of matches) {
+      const normalized = normalizeUrl(match);
+      if (isLikelyRouteUrl(normalized)) {
+        urls.add(normalized);
+      }
+    }
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    for (const nested of value) {
+      collectRouteUrlsFromValue(nested, urls);
+    }
+    return;
+  }
+
+  if (typeof value === 'object') {
+    for (const nested of Object.values(value)) {
+      collectRouteUrlsFromValue(nested, urls);
+    }
+  }
+}
+
+function enrichMapLinks(brevet: Brevet) {
+  const urls = new Set<string>();
+
+  for (const mapUrl of brevet.map || []) {
+    const normalized = normalizeUrl(mapUrl);
+    if (isLikelyRouteUrl(normalized)) {
+      urls.add(normalized);
+    }
+  }
+
+  collectRouteUrlsFromValue(brevet.meta, urls);
+
+  const orderedMapUrls = [...urls].sort((a, b) => a.localeCompare(b));
+
+  return {
+    ...brevet,
+    map: orderedMapUrls,
+  };
 }
 
 /**
@@ -252,9 +398,7 @@ function mergeRecords(records: Brevet[]): Brevet[] {
   }
 
   const unmergedOther = other.filter((b) => !consumedOther.has(b.objectID));
-  const merged = [...mergedSupabase, ...unmergedOther];
-
-  return merged;
+  return [...mergedSupabase, ...unmergedOther];
 }
 
 const data = await fetchAllData();
@@ -262,10 +406,13 @@ const mergedData = mergeRecords(data);
 console.log(
   `Merged ${data.length} records → ${mergedData.length} (removed ${data.length - mergedData.length} duplicates)`
 );
+
+const enriched = mergedData.map(enrichMapLinks);
+
 const { existingObjectIDs, existingGeo } = await getExistingData();
 
-const newBrevets = mergedData.filter((b) => !existingObjectIDs.has(b.objectID));
-const existingBrevets = mergedData
+const newBrevets = enriched.filter((b) => !existingObjectIDs.has(b.objectID));
+const existingBrevets = enriched
   .filter((b) => existingObjectIDs.has(b.objectID))
   .map((b) => inheritGeoloc(b, existingGeo));
 
