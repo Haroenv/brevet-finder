@@ -28,7 +28,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useView, ViewIndexUiState } from './connect-view';
 import { dateToNum, numToDateString } from './date';
 import { useMediaQuery } from './use-media-query';
-import { Footer, Logo } from './shared';
+import { Footer, TopBar } from './shared';
 import { DatePicker } from './datepicker';
 import { GeoSearch } from './geosearch';
 import { HitCard, getDistanceColor } from './hitcard';
@@ -131,6 +131,7 @@ export function SearchApp({
         >
           <Configure hitsPerPage={isSmallSize(size) ? 10 : 18} />
           <div>
+            <TopBar />
             <div
               style={{
                 display: 'grid',
@@ -154,10 +155,9 @@ export function SearchApp({
   );
 }
 
-function Sidebar({ logo = true }: { logo?: boolean }) {
+function Sidebar() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
-      {logo && <Logo />}
       <PlanFilterWrapper>
         <Panel header="my plans">
           <PlanFilter />
@@ -348,7 +348,7 @@ function Main() {
             </button>
             <Stats />
           </div>
-          <Sidebar logo={false} />
+          <Sidebar />
         </div>
       )}
     </div>

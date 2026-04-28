@@ -31,10 +31,16 @@ jobs:
         run: bun run build
         env:
           NODE_ENV: production
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
           VITE_ALGOLIA_APP: ${{ vars.VITE_ALGOLIA_APP }}
           VITE_ALGOLIA_READ: ${{ vars.VITE_ALGOLIA_READ }}
           VITE_MAPBOX: ${{ vars.VITE_MAPBOX }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - name: Add 404 fallback for SPA routing
+        run: cp dist/index.html dist/404.html
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

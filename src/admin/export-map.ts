@@ -3,9 +3,9 @@ import { Brevet } from '../types';
 import { cleanCountry, cleanRegion } from './clean-utils';
 import { checkOk } from './fetch-utils';
 
-const { SUPABASE = '' } = process.env;
-if (!SUPABASE) {
-  throw new Error('Missing SUPABASE env variable');
+const { ACP_MAP_SUPABASE_API_KEY = '' } = process.env;
+if (!ACP_MAP_SUPABASE_API_KEY) {
+  throw new Error('Missing ACP_MAP_SUPABASE_API_KEY env variable');
 }
 
 type Raw = {
@@ -36,7 +36,7 @@ type RawClub = {
 };
 
 async function fetchClubs(): Promise<Map<string, RawClub>> {
-  const apikey = SUPABASE;
+  const apikey = ACP_MAP_SUPABASE_API_KEY;
   const clubs = await fetch(
     'https://ranqsfwmoexghudpvpob.supabase.co/rest/v1/clubs?select=%2A',
     {
@@ -54,7 +54,7 @@ async function fetchClubs(): Promise<Map<string, RawClub>> {
 }
 
 async function fetchBrevets(): Promise<Raw[]> {
-  const apikey = SUPABASE;
+  const apikey = ACP_MAP_SUPABASE_API_KEY;
   const pageSize = 1000;
   const all: Raw[] = [];
 
