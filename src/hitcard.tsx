@@ -34,20 +34,6 @@ function getUrlLabel(url: string) {
   }
 }
 
-function getFallbackSearchUrl(hit: Hit<Brevet>) {
-  const query = [
-    hit.club,
-    hit.city,
-    hit.country,
-    hit.distance ? `${hit.distance}km` : '',
-    hit.date,
-    'BRM',
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-}
-
 // Official ACP randonneuring medal/distance colours
 const DISTANCE_COLORS: Map<number, { bg: string; text: string }> = new Map([
   [0, { bg: '#6c757d', text: '#fff' }],
