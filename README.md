@@ -8,6 +8,18 @@ A simple search for Brevet Randonneurs Mondiaux (BRM) events.
 bun install --frozen-lockfile
 ```
 
+## Environment variables
+
+Copy [.env.example](.env.example) to `.env` and fill in the values.
+
+Required for login/account:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+To enable per-user synced plans, run the SQL in [supabase/user_plans.sql](supabase/user_plans.sql)
+in your Supabase SQL editor.
+
 ## Export
 
 Load the data from the BRM website and save it to a JSON file.

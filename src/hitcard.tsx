@@ -1,5 +1,6 @@
 import { Highlight } from 'react-instantsearch';
 import { Hit } from 'instantsearch.js';
+import { Link } from 'react-router-dom';
 import { numToDate } from './date';
 import { Brevet } from './types';
 import {
@@ -9,6 +10,7 @@ import {
   type PlanStatus,
 } from './plans';
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils';
+import { ROUTES } from './routes';
 
 // Validate and sanitize URLs to prevent XSS via javascript: or data: protocols
 function isValidUrl(url: unknown): url is string {
@@ -128,6 +130,7 @@ export function HitCard({
   );
   const distanceColor = getDistanceColor(hit.distance);
   const relativeDate = getRelativeDate(hit.dateNumber);
+  const detailUrl = ROUTES.detail(hit.objectID);
 
   return (
     <article data-objectid={hit.objectID} className="hit-card">
@@ -152,13 +155,13 @@ export function HitCard({
               </span>
             )}
           </div>
-          <a className="hit-card__share" href={`?objectID=${hit.objectID}`}>
+          <Link className="hit-card__share" to={detailUrl}>
             share
-          </a>
+          </Link>
         </header>
 
         <h2 className="hit-card__title">
-          {link ? <a href={`?objectID=${hit.objectID}`}>{name}</a> : name}
+          {link ? <Link to={detailUrl}>{name}</Link> : name}
         </h2>
 
         <p className="hit-card__location">{location}</p>

@@ -25,7 +25,7 @@ jobs:
         run: bun run export
         env:
           PLACEKIT: ${{ secrets.PLACEKIT }}
-          SUPABASE: ${{ secrets.SUPABASE }}
+          ACP_MAP_SUPABASE_API_KEY: ${{ secrets.ACP_MAP_SUPABASE_API_KEY }}
           ALGOLIA_APP: ${{ secrets.ALGOLIA_APP }}
           ALGOLIA_WRITE: ${{ secrets.ALGOLIA_WRITE }}
       - name: Import content

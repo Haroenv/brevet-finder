@@ -1,4 +1,9 @@
 import { useInstantSearch } from 'react-instantsearch';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuthState } from './auth-state';
+import { ROUTES } from './routes';
+import { supabase } from './supabase';
 
 export function Footer() {
   return (
@@ -44,8 +49,8 @@ export function Footer() {
 export function Logo({ resets = true }: { resets?: boolean }) {
   const { setIndexUiState } = useInstantSearch();
   return (
-    <a
-      href="."
+    <Link
+      to={ROUTES.home}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || !resets) return;
         e.preventDefault();
@@ -63,6 +68,62 @@ export function Logo({ resets = true }: { resets?: boolean }) {
       >
         Brevet Finder
       </h1>
-    </a>
+    </Link>
+  );
+}
+
+export function TopBar({ resets = true }: { resets?: boolean }) {
+  return (
+    <div className="top-bar">
+      <Logo resets={resets} />
+      <AccountLinks />
+    </div>
+  );
+}
+
+export function AccountLinks() {
+  const { user, loading, configured } = useAuthState();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  if (loading || !configured) {
+    return null;
+  }
+
+  const supabaseClient = supabase;
+  if (!supabaseClient) {
+    return null;
+  }
+
+  return (
+    <nav aria-label="account" className="account-nav">
+      {user ? (
+        <>
+          <Link className="account-nav__item" to={ROUTES.account}>
+            account
+          </Link>
+          <button
+            type="button"
+            className="account-nav__item"
+            disabled={isSigningOut}
+            onClick={async () => {
+              setIsSigningOut(true);
+              await supabaseClient.auth.signOut();
+              setIsSigningOut(false);
+            }}
+          >
+            {isSigningOut ? '…' : 'sign out'}
+          </button>
+        </>
+      ) : (
+        <>
+          <Link className="account-nav__item" to={ROUTES.login}>
+            log in
+          </Link>
+          <Link className="account-nav__item" to={ROUTES.signup}>
+            sign up
+          </Link>
+        </>
+      )}
+    </nav>
   );
 }

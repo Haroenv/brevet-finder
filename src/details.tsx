@@ -3,17 +3,20 @@ import type { InstantSearchOptions } from 'instantsearch.js';
 import type { Brevet } from './types';
 import './map';
 import { useEffect } from 'react';
-import { Footer, Logo } from './shared';
+import { Footer, TopBar } from './shared';
 import { GeoSearch } from './geosearch';
 import { HitCard } from './hitcard';
 import { PlanProvider } from './plans';
-
-const objectID = new URLSearchParams(location.search).get('objectID');
+import { ROUTES } from './routes';
+import { Link } from 'react-router-dom';
 
 export function DetailsApp({
   searchClient,
   insights,
-}: Pick<InstantSearchOptions, 'searchClient' | 'insights'>) {
+  objectID,
+}: Pick<InstantSearchOptions, 'searchClient' | 'insights'> & {
+  objectID: string;
+}) {
   return (
     <PlanProvider>
       <InstantSearch
@@ -28,10 +31,10 @@ export function DetailsApp({
         <WindowTitle />
         <div style={{ maxWidth: '60ch', margin: '0 auto' }}>
           <Configure hitsPerPage={1} filters={`objectID:"${objectID}"`} />
-          <Logo resets={false} />
+          <TopBar resets={false} />
           <p>
             Check out this brevet! To find other brevets, go to{' '}
-            <a href=".">search</a>.
+            <Link to={ROUTES.home}>search</Link>.
           </p>
           <DisplayDetails />
           <Footer />
