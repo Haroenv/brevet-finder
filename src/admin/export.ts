@@ -10,6 +10,7 @@ import * as italy from './export-italy';
 import * as belgium from './export-belgium';
 import * as netherlands from './export-netherlands';
 import { Brevet } from '../types';
+import { getDisplayTitle } from '../display-title';
 
 const {
   ALGOLIA_APP = '',
@@ -425,7 +426,10 @@ const geocoded = await addGeoloc(needsGeocoding);
 const allBrevets = [
   ...geocoded,
   ...existingBrevets.filter((b) => b._geoloc?.[0]),
-];
+].map((brevet) => ({
+  ...brevet,
+  displayTitle: getDisplayTitle(brevet),
+}));
 
 await Bun.write('brevets.json', JSON.stringify(allBrevets, null, 2));
 console.log(`Exported ${allBrevets.length} brevets`);

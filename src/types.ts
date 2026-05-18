@@ -2,6 +2,7 @@ export type Brevet = {
   objectID: string;
   date: string;
   dateNumber: number;
+  displayTitle?: string;
   name?: string;
   distance?: number;
   country: string;

@@ -113,19 +113,6 @@ export function HitCard({
       .map((key) => <Highlight key={key} attribute={key} hit={hit} />),
     ', '
   );
-  const name = hit.name ? (
-    <Highlight attribute="name" hit={hit} />
-  ) : (
-    intersperse(
-      ['city', 'distance']
-        .filter(
-          (key): key is keyof Hit<Brevet> =>
-            key in hit && Boolean((hit as any)[key])
-        )
-        .map((key) => <Highlight key={key} attribute={key} hit={hit} />),
-      ' '
-    )
-  );
   const distanceColor = getDistanceColor(hit.distance);
   const relativeDate = getRelativeDate(hit.dateNumber);
 
@@ -158,7 +145,13 @@ export function HitCard({
         </header>
 
         <h2 className="hit-card__title">
-          {link ? <a href={`?objectID=${hit.objectID}`}>{name}</a> : name}
+          {link ? (
+            <a href={`?objectID=${hit.objectID}`}>
+              <Highlight attribute="displayTitle" hit={hit} />
+            </a>
+          ) : (
+            <Highlight attribute="displayTitle" hit={hit} />
+          )}
         </h2>
 
         <p className="hit-card__location">{location}</p>
