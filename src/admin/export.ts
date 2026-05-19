@@ -112,6 +112,7 @@ const ROUTE_HOSTS = new Set([
   'mapmagic.app',
   'nakarte.me',
   'brmtool.kantaro.org',
+  'rusa.org',
 ]);
 
 function normalizeUrl(url: string) {
@@ -173,6 +174,13 @@ function isLikelyRouteUrl(url: string) {
 
     if (parsed.hostname.includes('alltrails.com')) {
       return /\/trail\//i.test(path) || /\/explore\/map\//i.test(path);
+    }
+
+    if (parsed.hostname === 'rusa.org') {
+      return (
+        /\/routesearch_PF\.pl$/i.test(path) &&
+        /^\d+$/.test(parsed.searchParams.get('rtid') || '')
+      );
     }
 
     // For remaining known hosts (Garmin, MapMagic, Nakarte, BRMTool),
