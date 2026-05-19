@@ -11,6 +11,7 @@ import * as belgium from './export-belgium';
 import * as netherlands from './export-netherlands';
 import { Brevet } from '../types';
 import { getDisplayTitle } from '../display-title';
+import { buildClubRegistry, enrichBrevets } from './enrich-clubs';
 
 const {
   ALGOLIA_APP = '',
@@ -402,8 +403,9 @@ function mergeRecords(records: Brevet[]): Brevet[] {
   return [...mergedSupabase, ...unmergedOther];
 }
 
-const data = await fetchAllData();
-const mergedData = mergeRecords(data);
+const [data, clubRegistry] = await Promise.all([fetchAllData(), buildClubRegistry()]);
+const withClubSites = enrichBrevets(data, clubRegistry);
+const mergedData = mergeRecords(withClubSites);
 console.log(
   `Merged ${data.length} records → ${mergedData.length} (removed ${data.length - mergedData.length} duplicates)`
 );
