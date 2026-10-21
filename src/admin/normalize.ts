@@ -48,6 +48,7 @@ export function sourceOf(brevet: { objectID?: string; meta?: any }): string {
   if ('RoadMap' in m && 'Pays' in m) return 'acp';
   if ('NominalDistance' in m || 'AAAPoints' in m) return 'auk';
   if ('global_id_lineage' in m) return 'belgium';
+  if ('start_place' in m && 'registration_deadline' in m) return 'belgium';
   if ('contact' in m && 'from' in m && 'start' in m) return 'netherlands';
   if ('location' in m && 'type' in m) return 'usa';
   if ('Date' in m && 'Event Name' in m && 'E-Mail' in m) return 'ireland';
