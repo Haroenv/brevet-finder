@@ -19,6 +19,7 @@ const {
   ALGOLIA_APP = '',
   ALGOLIA_WRITE = '',
   SKIP_INDEX = '',
+  GITHUB_STEP_SUMMARY = '',
 } = process.env;
 if (!ALGOLIA_APP && !SKIP_INDEX) {
   throw new Error('Missing ALGOLIA_APP env variable');
@@ -285,7 +286,7 @@ const withClubSites = enrichBrevets(data, clubRegistry);
 const mergeReport = mergeRecords(withClubSites);
 console.log(
   `Merged ${data.length} records → ${mergeReport.records.length} ` +
-    `(merged ${mergeReport.clusters.length} clusters, kept ${mergeReport.ambiguous.length} ambiguous clusters separate)`
+  `(merged ${mergeReport.clusters.length} clusters, kept ${mergeReport.ambiguous.length} ambiguous clusters separate)`
 );
 
 // Hard assertions: every input record's identity is represented in the output.
@@ -333,9 +334,36 @@ await Bun.write('brevets.json', JSON.stringify(allBrevets, null, 2));
 console.log(`Exported ${allBrevets.length} brevets`);
 
 if (errors.length > 0) {
+  const summaryLines = [
+    '## Update summary',
+    '### ❌ Export failed',
+    '',
+    `The export step failed while fetching ${errors.length} source(s):`,
+    ...errors.map(({ source, error }) => `- ${source}: ${error instanceof Error ? error.message : String(error)}`),
+    '',
+  ];
+
+  if (GITHUB_STEP_SUMMARY) {
+    Bun.write(GITHUB_STEP_SUMMARY, `${summaryLines.join('\n')}\n`);
+  }
+
   console.error('\n❌ Errors occurred during data export:');
   errors.forEach(({ source, error }) => {
     console.error(`  - ${source}: ${error instanceof Error ? error.message : String(error)}`);
   });
   process.exit(1);
+}
+
+const summaryLines = [
+  '## Update summary',
+  '### ✅ Export succeeded',
+  '',
+  `- Exported ${allBrevets.length} brevets`,
+  `- Merged ${data.length} source records into ${allBrevets.length} final records`,
+];
+
+if (GITHUB_STEP_SUMMARY) {
+  Bun.write(GITHUB_STEP_SUMMARY, `${summaryLines.join('\n')}\n`);
+} else {
+  console.log(summaryLines.join('\n'));
 }
