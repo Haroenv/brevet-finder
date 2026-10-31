@@ -144,10 +144,14 @@ function cleanBrevets(brevets: Raw[]): Brevet[] {
 
 export async function getData() {
   console.log('Fetching ACP brevets...');
+  const from = new Date();
+  from.setFullYear(from.getFullYear() - 1);
+  const to = new Date();
+  to.setFullYear(to.getFullYear() + 2);
   return cleanBrevets(
     await fetchBrevets({
-      from: '2024-12-01',
-      to: '2026-12-01',
+      from: from.toISOString().split('T')[0],
+      to: to.toISOString().split('T')[0],
     })
   );
 }
